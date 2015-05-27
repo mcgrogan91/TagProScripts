@@ -27,6 +27,7 @@ function makeButtons(){
                 var item  =  $('<button id='+key+' class="btn btn-primary pull-right">'+buttons[key][0]+'</button>');
                 item.on('click', function() {
                     $("#comment_text").val(buttons[this.id][1]);
+                    $("#comment_preview").html(Autolinker.link(markdown.toHTML(buttons[this.id][1])))
                 });
                 $("#submit_comment").after(item);
             }
