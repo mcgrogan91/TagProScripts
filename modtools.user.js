@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
-// @version      1.1.1
+// @version      1.1.2
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
