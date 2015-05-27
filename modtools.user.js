@@ -232,7 +232,7 @@ if(window.location.pathname.indexOf('chat') > -1) {
         }) : bind($template, data)
     };
     function bindDate(e) {
-        return e;//moment(e).format("MMMM D YYYY h:mm:ss A");
+        return moment(e).format("MMMM D YYYY h:mm:ss A");
     }
     $('#reportRows').on('click', 'th', function() { 
         var $this = $(this);
