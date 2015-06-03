@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
-// @version      1.1.2
+// @version      1.1.3
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -34,7 +34,7 @@ if (window.location.pathname.indexOf("fingerprints") > -1) {
     });
 }
 if (window.location.pathname.indexOf("reports") > -1) {
-    
+
     function bindReason(e) {
         var t = moderate.kickReasons["" + e];
         return t ? t.text : ""
@@ -234,28 +234,28 @@ if(window.location.pathname.indexOf('chat') > -1) {
     function bindDate(e) {
         return moment(e).format("MMMM D YYYY h:mm:ss A");
     }
-    $('#reportRows').on('click', 'th', function() { 
+    $('#reportRows').on('click', 'th', function() {
         var $this = $(this);
         if ($this.parent().children()[6] != this) { return; }
-        
+
         if ($this.data('selected')) {
-            $this.removeData('selected');   
+            $this.removeData('selected');
         } else {
-            $this.data('selected', true);   
+            $this.data('selected', true);
         }
         $this.css('background-color', $this.data('selected')?'#444':'');
     });
- 
-    $('#report .buttons').append($('<button id="copyToClipboard" class="small">Get Selected Text</button>').click(function() { 
+
+    $('#report .buttons').append($('<button id="copyToClipboard" class="small">Get Selected Text</button>').click(function() {
         var copyStr = "";
-        $('#reportRows tr').find('th:eq(6)').each(function(idx, el) { 
+        $('#reportRows tr').find('th:eq(6)').each(function(idx, el) {
             var $el = $(el);
             if ($el.data('selected')) {
                 copyStr = $el.prev().text()+ ": " + $el.text() + "   \n" + copyStr;
             }
         });
         copyStr = ">"+copyStr;
-        
+
         $('.copybox').remove();
         var $text = $('<textarea class="copybox" style="height:1.2em;vertical-align:bottom"></textarea>').text(copyStr);
         $('#report .buttons').append($text);
@@ -264,7 +264,23 @@ if(window.location.pathname.indexOf('chat') > -1) {
 }
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips')) {
-    
+        if(window.location.pathname.indexOf('users') > -1) {
+          var fingerprints = $('a[href*="fingerprints"]').parent();
+          //fingerprints.hide();
+          var par = fingerprints.parent();
+          var togglePrints = $("<span id='togglePrints'>[-] Collapse</span>");
+          togglePrints.on('click', function(e) {
+              if(fingerprints.is(':visible')) {
+                  fingerprints.hide();
+                  togglePrints.text('[+] Expand');
+              } else {
+                fingerprints.show();
+                togglePrints.text('[-] Collapse');
+              }
+          })
+          $(par.children()[0]).after(togglePrints);
+
+        }
         var selectCopy = $("#banSelect").clone();
         var prevChild = $("#banSelect").prev();
         $("#banSelect").remove();
@@ -273,7 +289,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         $("#unbanButton").remove();
         var unban = $("<button id='unbanButton' class='tiny'>Unban</button>");
         $("#banSelect").parent().prev().append(unban);
-        
+
         var currentBanCount = $("#banCount").val();
         var select = $("<select id = 'removeCount'/>");
         var error = null;
@@ -324,7 +340,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     var submitBan = $("<button id='submitBan' class='tiny'>BAN EM</button>");
     submitBan.on('click', function(e) {
         e.preventDefault();
-        var banReason = $("#banSelect").val(); 
+        var banReason = $("#banSelect").val();
 
 
         var start = parseInt($("#banCount").val());
