@@ -269,12 +269,18 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
           //fingerprints.hide();
           var par = fingerprints.parent();
           var togglePrints = $("<span id='togglePrints'>[-] Collapse</span>");
+          if(GM_getValue("hideFingerprints")===true) {
+            togglePrints = $("<span id='togglePrints'>[+] Expand</span>");
+            fingerprints.hide();
+          }
           togglePrints.on('click', function(e) {
               if(fingerprints.is(':visible')) {
                   fingerprints.hide();
+                  GM_setValue("hideFingerprints", true);
                   togglePrints.text('[+] Expand');
               } else {
                 fingerprints.show();
+                GM_setValue("hideFingerprints", false);
                 togglePrints.text('[-] Collapse');
               }
           })
