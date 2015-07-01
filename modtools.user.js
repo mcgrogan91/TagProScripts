@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
-// @version      1.1.4
+// @version      1.1.5
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -312,7 +312,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             if(unbanClicked === false) {
               unbanCallback();
             } else {
-              console.log("You already clicked unban once u dink");
+              alert("You already clicked unban once u dink");
             }
 
             function unbanCallback()
@@ -363,7 +363,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         if(banClicked === false){
           banCallback();
         } else {
-          console.log("You already clicked ban once u dink");
+          alert("You already clicked ban once u dink");
         }
 
         function banCallback()
