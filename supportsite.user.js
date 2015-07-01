@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         Support Site Helper
 // @namespace    http://www.reddit.com/u/bizkut
-// @version      0.4
+// @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/supportsite.user.js
+// @version      0.5
 // @description  Adds Good Standing button for default Good Standing reply.  Other button texts provided by Turtlemansam
 // @author       Bizkut
 // @include      http://support.koalabeast.com/*

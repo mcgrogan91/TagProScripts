@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
+// @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 // @version      1.1.5
 // @description  It does a lot.
 // @author       Bizkut
