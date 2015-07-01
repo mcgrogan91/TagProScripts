@@ -305,14 +305,19 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         }
         select.appendTo($("#unbanButton").prev());
         $("#unbanButton").off('click');
+        unbanClicked = false;
         $("#unbanButton").on('click.bizkut',function(e){
             e.preventDefault();
             var removeBans = $("#removeCount").val();
-
-            unbanCallback();
+            if(unbanClicked === false) {
+              unbanCallback();
+            } else {
+              alert("You already clicked unban once u dink");
+            }
 
             function unbanCallback()
             {
+                unbanClicked = true;
                 if(removeBans > 0)
                 {
                     removeBans--;
@@ -344,6 +349,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     $("#banSelect").parent().append(banAmount);
 
     var submitBan = $("<button id='submitBan' class='tiny'>BAN EM</button>");
+    var banClicked = false;
     submitBan.on('click', function(e) {
         e.preventDefault();
         var banReason = $("#banSelect").val();
@@ -353,10 +359,15 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         var finish = start + parseInt($("#banAmount").val());
 
 
-        banCallback();
+        if(banClicked === false){
+          banCallback();
+        } else {
+          alert("You already clicked ban once u dink");
+        }
 
         function banCallback()
         {
+            banClicked = true;
             if(start < finish)
             {
                 start++;
