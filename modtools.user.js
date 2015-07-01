@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
-// @version      1.1.3
+// @version      1.1.4
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -312,7 +312,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             if(unbanClicked === false) {
               unbanCallback();
             } else {
-              alert("You already clicked unban once u dink");
+              console.log("You already clicked unban once u dink");
             }
 
             function unbanCallback()
@@ -320,6 +320,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                 unbanClicked = true;
                 if(removeBans > 0)
                 {
+                    console.log('removing 1 ban');
                     removeBans--;
                     $.post(document.location.href + "/unban", {}, function(e) {
                         if (!e) return;
@@ -362,7 +363,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         if(banClicked === false){
           banCallback();
         } else {
-          alert("You already clicked ban once u dink");
+          console.log("You already clicked ban once u dink");
         }
 
         function banCallback()
@@ -371,6 +372,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             if(start < finish)
             {
                 start++;
+                console.log('banning');
                 $.post(document.location.href + "/ban", {
                             reason: banReason,
                             banCount: start
