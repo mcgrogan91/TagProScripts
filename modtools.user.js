@@ -264,7 +264,7 @@ if(window.location.pathname.indexOf('chat') > -1) {
     } ))
 }
 
-if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips')) {
+if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
         if(window.location.pathname.indexOf('users') > -1) {
           var fingerprints = $('a[href*="fingerprints"]').parent();
           //fingerprints.hide();
