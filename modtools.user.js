@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.6
+// @version      1.1.7
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -390,12 +390,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
     var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
     $.get("http://104.236.225.6/comment/"+profId, function (data) {
-       var text = "<div id='comments' style='padding-bottom:15px;'>";
-
-        for(var i=0;i<data.length;i++) {
-            text = text+(data[i]['comment_text'])+", -By "+(data[i]['mod_name'])+"<br/>";
-        }
-        $(text+"</div>").insertAfter("#comment_title");
+        $(data).insertAfter("#comment_title");
 
         $("<textarea id='comment_box' />").insertAfter($('#comments'));
 
@@ -411,11 +406,11 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                   var hrf = $(data).find("a:contains('Profile')")[0].href;
                   $.get(hrf, function (data2) {
                         var username = $(data2).find("#reservedName").val();
-                        // $.post( "http://104.236.225.6/comment", { profile: profId, comment: text, modName: username })
-                        //   .done(function( data ) {
-                        //     location.reload();
-                        // });
-                        alert("Comment saving under construction, "+username);
+                         $.post( "http://104.236.225.6/comment", { profile: profId, comment: text, modName: username })
+                           .done(function( data ) {
+                             location.reload();
+                         });
+                        //alert("Comment saving under construction, "+username);
                   });
               });
             } else {
