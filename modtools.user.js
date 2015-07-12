@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.7
+// @version      1.1.8
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -289,13 +289,14 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
 
         }
         var selectCopy = $("#banSelect").clone();
+        selectCopy.attr('id', "banCopy");
         var prevChild = $("#banSelect").prev();
         $("#banSelect").remove();
         prevChild.after(selectCopy);
 
         $("#unbanButton").remove();
         var unban = $("<button id='unbanButton' class='tiny'>Unban</button>");
-        $("#banSelect").parent().prev().append(unban);
+        prevChild.parent().prev().append(unban);
 
         var currentBanCount = $("#banCount").val();
         var select = $("<select id = 'removeCount'/>");
@@ -304,7 +305,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         {
             $("<option />", {value: i, text: i}).appendTo(select);
         }
-        select.appendTo($("#unbanButton").prev());
+        select.appendTo(unban.prev());
         $("#unbanButton").off('click');
         unbanClicked = false;
         $("#unbanButton").on('click.bizkut',function(e){
@@ -348,13 +349,13 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         $("<option />", {value: x, text: x}).appendTo(banAmount);
     }
 
-    $("#banSelect").parent().append(banAmount);
+    prevChild.parent().append(banAmount);
 
     var submitBan = $("<button id='submitBan' class='tiny'>BAN EM</button>");
     var banClicked = false;
     submitBan.on('click', function(e) {
         e.preventDefault();
-        var banReason = $("#banSelect").val();
+        var banReason = $("#banCopy").val();
 
 
         var start = parseInt($("#banCount").val());
@@ -385,7 +386,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             }
         }
     });
-    $("#banSelect").parent().append(submitBan);
+    prevChild.parent().append(submitBan);
 
     $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
     var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
