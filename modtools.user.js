@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.8
+// @version      1.1.9
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -53,7 +53,16 @@ if (window.location.pathname.indexOf("reports") > -1) {
     }
 
     function bindChatTo(e) {
-        return e ? e == 1 ? "All" : "Team" : ""
+        switch (e) {
+            case 1:
+                return "All";
+            case 2:
+                return "Team";
+            case 3:
+                return "Mod";
+            default:
+                return ""
+        }
     }
 
     function bindUserId(e) {
@@ -187,7 +196,6 @@ if(window.location.pathname.indexOf('chat') > -1) {
                 }
                 if (format) {
                     var func = null;
-                    console.dir(value);
                     eval("func = " + format), value = func(value)
                 }
                 $(this).text(value)
