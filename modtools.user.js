@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.9
+// @version      1.1.10
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -396,43 +396,46 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     });
     prevChild.parent().append(submitBan);
 
-    $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
     var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
-    $.get("http://104.236.225.6/comment/"+profId, function (data) {
-        $(data).insertAfter("#comment_title");
+    if(profId !== 'users') {
+        $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
 
-        $("<textarea id='comment_box' />").insertAfter($('#comments'));
+        $.get("http://104.236.225.6/comment/"+profId, function (data) {
+            $(data).insertAfter("#comment_title");
 
-        var makeComment = $("<button id='submitComment' class='tiny'>Submit</button>");
-        var cancelComment = $("<button id='cancelComment' class='tiny'>Cancel</button>")
-        var commented = false;
-        makeComment.on('click', function() {
-          var text = $("#comment_box").val();
-          if($.trim(text).length !== 0) {
-            if(commented === false) {
-              commented = true;
-              $.get(window.location.origin, function (data) {
-                  var hrf = $(data).find("a:contains('Profile')")[0].href;
-                  $.get(hrf, function (data2) {
-                        var username = $(data2).find("#reservedName").val();
-                         $.post( "http://104.236.225.6/comment", { profile: profId, comment: text, modName: username })
-                           .done(function( data ) {
-                             location.reload();
-                         });
-                        //alert("Comment saving under construction, "+username);
+            $("<textarea id='comment_box' />").insertAfter($('#comments'));
+
+            var makeComment = $("<button id='submitComment' class='tiny'>Submit</button>");
+            var cancelComment = $("<button id='cancelComment' class='tiny'>Cancel</button>")
+            var commented = false;
+            makeComment.on('click', function() {
+              var text = $("#comment_box").val();
+              if($.trim(text).length !== 0) {
+                if(commented === false) {
+                  commented = true;
+                  $.get(window.location.origin, function (data) {
+                      var hrf = $(data).find("a:contains('Profile')")[0].href;
+                      $.get(hrf, function (data2) {
+                            var username = $(data2).find("#reservedName").val();
+                             $.post( "http://104.236.225.6/comment", { profile: profId, comment: text, modName: username })
+                               .done(function( data ) {
+                                 location.reload();
+                             });
+                            //alert("Comment saving under construction, "+username);
+                      });
                   });
-              });
-            } else {
-              alert("You already clicked comment once u dink");
-            }
-          }
-        });
-        cancelComment.on('click', function() {
-          $("#comment_box").val("");
-        });
+                } else {
+                  alert("You already clicked comment once u dink");
+                }
+              }
+            });
+            cancelComment.on('click', function() {
+              $("#comment_box").val("");
+            });
 
-        makeComment.insertAfter($("#comment_box"));
-        cancelComment.insertAfter(makeComment);
-        $("<br/>").insertBefore(makeComment);
-    });
+            makeComment.insertAfter($("#comment_box"));
+            cancelComment.insertAfter(makeComment);
+            $("<br/>").insertBefore(makeComment);
+        });
+    }
 }
