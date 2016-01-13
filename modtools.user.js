@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.10
+// @version      1.1.11
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -11,26 +11,45 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // ==/UserScript==
+
+var newAcntHours = 48;
+
 if (window.location.pathname.indexOf("fingerprints") > -1) {
     $("div a").each(function (index, domObject) {
         var obj = $(domObject);
         $.get(obj[0].href, function (data) {
-            var hoursago = ($($(data).children("form").children()[2]).children("span").text());
-            var lastIp = ($($(data).children("form").children()[3]).children("a").text());
-            obj.append(" - Last Played: " + hoursago + " | IP: " + lastIp)
-            var hours = hoursago.split(" ")[0];
-            var hoursAsFloat = parseFloat(hours);
-            if (hoursAsFloat <= 1) {
-                obj.css({
-                    'color': 'green'
-                });
-            }
-            if (data.indexOf("unbanButton") > -1) {
-                obj.append(" (This user is currently banned)");
-                obj.css({
-                    'color': 'red',
-                })
-            }
+          var children = $(data).children("form").children();
+          var hoursago = ($(children[2]).children("span").text());
+          var lastIp = ($(children[3]).children("a").text());
+          var accage = ($(children[4]).children("span").text());
+          obj.append(" - Last Played: " + hoursago + " | IP: " + lastIp + " | AGE: " + accage)
+          var hours = hoursago.split(" ")[0];
+          var hoursAsFloat = parseFloat(hours);
+          var hoursAge = accage.split(" ")[0];
+          var hoursAgeAsFloat = parseFloat(hoursAge);
+
+          // Orange/Cyan added for new accounts by Ballzilla
+          if (data.indexOf("unbanButton") > -1) {
+              obj.append(" (This user is currently banned)");
+              if(hoursAgeAsFloat <= newAcntHours) {
+                  obj.css({
+                      'color': 'orange'
+                  })
+              } else {
+                  obj.css({
+                      'color': 'red'
+                  })
+              }
+          } else if(hoursAgeAsFloat <= newAcntHours) {
+                    obj.css({
+                  'color': 'cyan'
+              });
+          }
+          else if (hoursAsFloat <= 1) {
+              obj.css({
+                  'color': 'green'
+              });
+          }
         });
     });
 }
