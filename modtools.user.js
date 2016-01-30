@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.11
+// @version      1.1.12
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -12,6 +12,60 @@
 // @grant       GM_setValue
 // ==/UserScript==
 
+function bindReason(e) {
+    var t = moderate.kickReasons["" + e];
+    return t ? t.text : ""
+}
+function bindPlayerName(e) {
+    return e ? e.reservedName : ""
+}
+
+function bindSince(e) {
+    return e ? moment(e).format("MMMM D YYYY h:mm:ss A") : "-"
+}
+
+function bindDate(e) {
+    return moment(e).format("LLL")
+}
+
+function bindChatTo(e) {
+    switch (e) {
+        case 1:
+            return "All";
+        case 2:
+            return "Team";
+        case 3:
+            return "Mod";
+        default:
+            return ""
+    }
+}
+
+function bindUserId(e) {
+    return e ? e : ""
+}
+
+function bindGameState(e) {
+    switch (e) {
+        case 1:
+            return "In Progress";
+        case 2:
+            return "Completed";
+        case 3:
+            return "Starting";
+        default:
+            return "I Dunno"
+    }
+}
+
+function bindBool(e) {
+    return e ? "Yes" : "No"
+}
+
+function bindValue(e) {
+    return e ? e : ""
+}
+
 var newAcntHours = 48;
 
 if (window.location.pathname.indexOf("fingerprints") > -1) {
@@ -19,13 +73,13 @@ if (window.location.pathname.indexOf("fingerprints") > -1) {
         var obj = $(domObject);
         $.get(obj[0].href, function (data) {
           var children = $(data).children("form").children();
-          var hoursago = ($(children[2]).children("span").text());
+          var hoursAgo = ($(children[2]).children("span").text());
           var lastIp = ($(children[3]).children("a").text());
-          var accage = ($(children[4]).children("span").text());
-          obj.append(" - Last Played: " + hoursago + " | IP: " + lastIp + " | AGE: " + accage)
-          var hours = hoursago.split(" ")[0];
+          var accountAge = ($(children[4]).children("span").text());
+          obj.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge)
+          var hours = hoursAgo.split(" ")[0];
           var hoursAsFloat = parseFloat(hours);
-          var hoursAge = accage.split(" ")[0];
+          var hoursAge = accountAge.split(" ")[0];
           var hoursAgeAsFloat = parseFloat(hoursAge);
 
           // Orange/Cyan added for new accounts by Ballzilla
@@ -55,59 +109,7 @@ if (window.location.pathname.indexOf("fingerprints") > -1) {
 }
 if (window.location.pathname.indexOf("reports") > -1) {
 
-    function bindReason(e) {
-        var t = moderate.kickReasons["" + e];
-        return t ? t.text : ""
-    }
-    function bindPlayerName(e) {
-        return e ? e.reservedName : ""
-    }
 
-    function bindSince(e) {
-        return e ? moment(e).format("MMMM D YYYY h:mm:ss A") : "-"
-    }
-
-    function bindDate(e) {
-        return moment(e).format("LLL")
-    }
-
-    function bindChatTo(e) {
-        switch (e) {
-            case 1:
-                return "All";
-            case 2:
-                return "Team";
-            case 3:
-                return "Mod";
-            default:
-                return ""
-        }
-    }
-
-    function bindUserId(e) {
-        return e ? e : ""
-    }
-
-    function bindGameState(e) {
-        switch (e) {
-            case 1:
-                return "In Progress";
-            case 2:
-                return "Completed";
-            case 3:
-                return "Starting";
-            default:
-                return "I Dunno"
-        }
-    }
-
-    function bindBool(e) {
-        return e ? "Yes" : "No"
-    }
-
-    function bindValue(e) {
-        return e ? e : ""
-    }
     $("#filters").append("<input type='checkbox' id='toggleSys'>Hide system reports</input>");
     if(GM_getValue("hideSystem")===true){
         $("#toggleSys").prop('checked', true);
