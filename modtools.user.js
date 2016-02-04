@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.13
+// @version      1.1.14
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -307,7 +307,7 @@ if(window.location.pathname.indexOf('chat') > -1) {
 }
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
-        $("header > a").append("<input type='checkbox' id='dinkProtect'>Hide system reports</input>");
+        $("header > a").append("<input type='checkbox' id='dinkProtect'>Enable dink protections</input>");
         if(GM_getValue("dink_protect")===true){
             $("#dinkProtect").prop('checked', true);
         }
