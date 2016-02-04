@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.1.12
+// @version      1.1.13
 // @description  It does a lot.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -64,6 +64,19 @@ function bindBool(e) {
 
 function bindValue(e) {
     return e ? e : ""
+}
+
+function dinkProtect() {
+    if (GM_getValue("dink_protect") === true) {
+      if (confirm("Are you sure you want to do that, you dink?")) {
+        if (confirm("Like, absolutely sure?")) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return true;
+    }
 }
 
 var newAcntHours = 48;
@@ -294,6 +307,17 @@ if(window.location.pathname.indexOf('chat') > -1) {
 }
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
+        $("header > a").append("<input type='checkbox' id='dinkProtect'>Hide system reports</input>");
+        if(GM_getValue("dink_protect")===true){
+            $("#dinkProtect").prop('checked', true);
+        }
+        $("#dinkProtect").on('change', function() {
+            if($(this).is(":checked")) {
+                GM_setValue("dink_protect", true)
+            } else {
+                GM_setValue("dink_protect", false)
+            }
+        });
         if(window.location.pathname.indexOf('users') > -1) {
           var fingerprints = $('a[href*="fingerprints"]').parent();
           //fingerprints.hide();
@@ -339,6 +363,9 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         unbanClicked = false;
         $("#unbanButton").on('click.bizkut',function(e){
             e.preventDefault();
+            if (!dinkProtect()) {
+              return;
+            }
             var removeBans = $("#removeCount").val();
             if(unbanClicked === false) {
               unbanCallback();
@@ -384,6 +411,9 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     var banClicked = false;
     submitBan.on('click', function(e) {
         e.preventDefault();
+        if (!dinkProtect()) {
+          return;
+        }
         var banReason = $("#banCopy").val();
 
 
