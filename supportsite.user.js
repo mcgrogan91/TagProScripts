@@ -2,10 +2,11 @@
 // @name         Support Site Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/supportsite.user.js
-// @version      0.5
+// @version      1.0
 // @description  Adds Good Standing button for default Good Standing reply.  Other button texts provided by Turtlemansam
 // @author       Bizkut
 // @include      http://support.koalabeast.com/*
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 //NOTE, CHANGE THIS TO THE NAME YOU WANT DISPLAYED AT THE END OF SOME MESSAGES
@@ -36,3 +37,46 @@ function makeButtons(){
     }
 }
 setInterval(makeButtons,1000);
+
+$(window).on('load hashchange', function(e){
+    findAppealAccount();
+});
+
+function findAppealAccount() {
+    if ($('div#main').length == 0) {
+        setTimeout(findAppealAccount, 400);
+        return;
+    }
+    var profileIDLink = $("a[href^='http://tagpro-origin.koalabeast.com/moderate/users/']");
+    if (window.location.hash.indexOf('/ticket/') > 0) {
+        if (profileIDLink.length > 0) {
+            var profileAddress = profileIDLink[0].href;
+            if (profileAddress.substring(profileAddress.lastIndexOf("/")+1).length > 0) {
+                GM_xmlhttpRequest({
+                      method: "GET",
+                      url: profileAddress,
+                      onload: function(response) {
+                          var response = $(response.response);
+                          var reserved = response.find("label:contains('Reserved Name')").next().text();
+                          var display = response.find("label:contains('Display Name')").next().text();
+
+                          if (reserved || display) {
+                              showNames(reserved, display);
+                          }
+                      }
+                });
+            }
+        }
+    }
+}
+
+function showNames(reserved, display) {
+    if (!reserved || reserved.length === 0) {
+      reserved = "<em>Could not find Reserved Name</em>";
+    }
+    if (!display || display.length === 0) {
+      display = "<em>Could not find Display Name</em>";
+    }
+    $("div#main>div>hr").before("<br/><span id='showing_display_name'><strong>Display Name</strong>: "+display+"</span>");
+    $("div#main>div>hr").before("<br/><span id='showing_reserved_name'><strong>Reserved Name</strong>: "+reserved+"</span>");
+}
