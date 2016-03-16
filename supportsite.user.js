@@ -59,9 +59,15 @@ function findAppealAccount() {
                           var response = $(response.response);
                           var reserved = response.find("label:contains('Reserved Name')").next().text();
                           var display = response.find("label:contains('Display Name')").next().text();
+                          var goodstanding = response.find("label:contains('Good Standing')").next().text();
+                          var currentban = response.find("label:contains('Current Ban')").next().text();
+                          var lastmodaction = response.find("h2:contains('Moderate Bans')").next().text();
+                          var lastreports = response.find('.removeReport').prev().map(function() { return $(this).text() }).get().join(', ');
+                          
+                          if (lastmodaction == 'Recent Reports (24 hours)') lastmodaction = '';
 
                           if (reserved || display) {
-                              showNames(reserved, display);
+                              showNames(reserved, display, goodstanding, currentban, lastmodaction, lastreports);
                           }
                       }
                 });
@@ -70,7 +76,7 @@ function findAppealAccount() {
     }
 }
 
-function showNames(reserved, display) {
+function showNames(reserved, display, goodstanding, currentban, lastmodaction, lastreports) {
     if (!reserved || reserved.length === 0) {
       reserved = "<em>Could not find Reserved Name</em>";
     }
@@ -79,4 +85,8 @@ function showNames(reserved, display) {
     }
     $("div#main>div>hr").before("<br/><span id='showing_display_name'><strong>Display Name</strong>: "+display+"</span>");
     $("div#main>div>hr").before("<br/><span id='showing_reserved_name'><strong>Reserved Name</strong>: "+reserved+"</span>");
+    $("div#main>div>hr").before("<br/><span id='showing_good_standing'><strong>Good Standing</strong>: "+goodstanding+"</span>");
+    $("div#main>div>hr").before("<br/><span id='showing_current_ban'><strong>Current Ban</strong>: "+currentban+"</span>");
+    $("div#main>div>hr").before("<br/><span id='showing_last_mod_action'><strong>Last Mod Action</strong>: "+lastmodaction+"</span>");
+    $("div#main>div>hr").before("<br/><span id='showing_last_reports'><strong>Last Reports (24 hours)</strong>: "+lastreports+"</span>");
 }
