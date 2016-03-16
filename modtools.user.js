@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
-// @updateURL   https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.2.1
+// @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
+// @version      1.2.2
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -130,7 +130,6 @@ function setMod() {
 setMod();
 
 function isMasterTab() {
-    console.dir(crosstab.util.tabs);
     return crosstab.util.tabs[crosstab.util.keys.MASTER_TAB].id === crosstab.id;
 }
 
@@ -298,44 +297,46 @@ function dinkProtect() {
 }
 
 var newAcntHours = 48;
+function colorAccountInfo(accountLink) {
+    $.get(accountLink[0].href, function (data) {
+        var children = $(data).children("form").children();
+        var hoursAgo = ($(children[2]).children("span").text());
+        var lastIp = ($(children[3]).children("a").text());
+        var accountAge = ($(children[4]).children("span").text());
+        accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge)
+        var hours = hoursAgo.split(" ")[0];
+        var hoursAsFloat = parseFloat(hours);
+        var hoursAge = accountAge.split(" ")[0];
+        var hoursAgeAsFloat = parseFloat(hoursAge);
 
+        // Orange/Cyan added for new accounts by Ballzilla
+        if (data.indexOf("unbanButton") > -1) {
+            accountLink.append(" (This user is currently banned)");
+            if(hoursAgeAsFloat <= newAcntHours) {
+                accountLink.css({
+                    'color': 'orange'
+                })
+            } else {
+                accountLink.css({
+                    'color': 'red'
+                })
+            }
+        } else if(hoursAgeAsFloat <= newAcntHours) {
+            accountLink.css({
+                'color': 'cyan'
+            });
+        }
+        else if (hoursAsFloat <= 1) {
+            accountLink.css({
+                'color': 'green'
+            });
+        }
+    });
+}
 if (window.location.pathname.indexOf("fingerprints") > -1) {
     $("div a").each(function (index, domObject) {
         var obj = $(domObject);
-        $.get(obj[0].href, function (data) {
-            var children = $(data).children("form").children();
-            var hoursAgo = ($(children[2]).children("span").text());
-            var lastIp = ($(children[3]).children("a").text());
-            var accountAge = ($(children[4]).children("span").text());
-            obj.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge)
-            var hours = hoursAgo.split(" ")[0];
-            var hoursAsFloat = parseFloat(hours);
-            var hoursAge = accountAge.split(" ")[0];
-            var hoursAgeAsFloat = parseFloat(hoursAge);
-
-            // Orange/Cyan added for new accounts by Ballzilla
-            if (data.indexOf("unbanButton") > -1) {
-                obj.append(" (This user is currently banned)");
-                if(hoursAgeAsFloat <= newAcntHours) {
-                    obj.css({
-                        'color': 'orange'
-                    })
-                } else {
-                    obj.css({
-                        'color': 'red'
-                    })
-                }
-            } else if(hoursAgeAsFloat <= newAcntHours) {
-                obj.css({
-                    'color': 'cyan'
-                });
-            }
-            else if (hoursAsFloat <= 1) {
-                obj.css({
-                    'color': 'green'
-                });
-            }
-        });
+        colorAccountInfo(obj);
     });
 }
 if (window.location.pathname.indexOf("reports") > -1) {
@@ -598,14 +599,17 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                     if (fingerprintList.length == 0) {
                         arr = sortObject(names);
                         arr = arr.splice(0, GM_getValue("common_count",5));
+                        var occurrances = $('<div>Top ' + GM_getValue("common_count",5) + ' Name Occurrances in Fingerprints:</div>');
+                        occurrances.append("<br/>");
 
-                        message = 'Top ' + GM_getValue("common_count",5) + ' Name Occurrances in Fingerprints' + "<br/>";
 
                         $.each(arr, function(key, value) {
-                            message += '<a href = "' + arr[key].key + '">' + arr[key].value.name + '</a>: ' + arr[key].value.count + "<br/>";
+                            var link = $("<a href = '" + arr[key].key + "'>" + arr[key].value.name + "</a>");
+                            colorAccountInfo(link);
+                            occurrances.append(link).append("<br/>");
                         });
 
-                        $("#sharedAccounts").html(message);
+                        $("#sharedAccounts").append(occurrances);
                     } else {
                         checkfingerprint();
                     }
