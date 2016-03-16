@@ -2,7 +2,7 @@
 // @name         Support Site Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/supportsite.user.js
-// @version      1.0
+// @version      1.0.1
 // @description  Adds Good Standing button for default Good Standing reply.  Other button texts provided by Turtlemansam
 // @author       Bizkut
 // @include      http://support.koalabeast.com/*
@@ -63,7 +63,7 @@ function findAppealAccount() {
                           var currentban = response.find("label:contains('Current Ban')").next().text();
                           var lastmodaction = response.find("h2:contains('Moderate Bans')").next().text();
                           var lastreports = response.find('.removeReport').prev().map(function() { return $(this).text() }).get().join(', ');
-                          
+
                           if (lastmodaction == 'Recent Reports (24 hours)') lastmodaction = '';
 
                           if (reserved || display) {
