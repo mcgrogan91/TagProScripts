@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.2.2
+// @version      1.2.3
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -551,10 +551,13 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
 
         var names = [];
         var fingerprintList = [];
-
+        var totalFingerprints = 0;
+        
         $('#togglePrints').next('div').find('a').each(function() {
             fingerprintList.push($(this).html());
         });
+
+        totalFingerprints = fingerprintList.length;
 
         if (fingerprintList.length > 0) {
             var calculate = $("<button id='calcFingerprints' class='tiny'>Find Common Accounts (May take some time)</button>");
@@ -580,7 +583,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             }
 
             function checkfingerprint() {
-                $("#calcFingerprints").remove();
+                $("#calcFingerprints").prop('disabled', true).css('backgroundColor', '#F4F4F4').html('Checking ' + (totalFingerprints - fingerprintList.length + 1) + ' of ' + totalFingerprints + ' fingerprints...');
                 $.get(window.location.origin + '/moderate/fingerprints/' + fingerprintList[0], function(data) {
                     $(data).find('div > a').each(function() {
                         var link = '' + $(this).attr('href');
@@ -597,14 +600,16 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                     fingerprintList.splice(0, 1);
 
                     if (fingerprintList.length == 0) {
+                        $("#calcFingerprints").remove();
+
                         arr = sortObject(names);
                         arr = arr.splice(0, GM_getValue("common_count",5));
-                        var occurrances = $('<div>Top ' + GM_getValue("common_count",5) + ' Name Occurrances in Fingerprints:</div>');
+                        var occurrances = $('<div>Top ' + GM_getValue("common_count",5) + ' Name Occurrances in ' + totalFingerprints + ' Fingerprints:</div>');
                         occurrances.append("<br/>");
 
 
                         $.each(arr, function(key, value) {
-                            var link = $("<a href = '" + arr[key].key + "'>" + arr[key].value.name + "</a>");
+                            var link = $("<a href = '" + arr[key].key + "'>" + arr[key].value.name + " - <strong>Appears " + arr[key].value.count + " times</strong></a>");
                             colorAccountInfo(link);
                             occurrances.append(link).append("<br/>");
                         });
