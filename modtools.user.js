@@ -2,13 +2,14 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.2.3
+// @version      1.3.0
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
 // @include      http://tangent.jukejuice.com/moderate/*
 // @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/crosstab/0.2.12/crosstab.min.js
+// @require      https://gist.githubusercontent.com/omicr0n/2649a1445aef4174a140684044b2755f/raw/tagpro-highriskips.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
@@ -550,9 +551,10 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         $(par.children()[0]).after(togglePrints);
 
         var names = [];
+        var fingerQueue = [];
         var fingerprintList = [];
         var totalFingerprints = 0;
-        
+
         $('#togglePrints').next('div').find('a').each(function() {
             fingerprintList.push($(this).html());
         });
@@ -566,7 +568,10 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             fingerprints.parent().after(sharedAccountDiv);
             calculate.on('click', function(e) {
                 e.preventDefault();
-                checkfingerprint();
+                for (i = 0; i < (fingerprintList.length < 10 ? fingerprintList.length : 10); i++)
+                {
+                    fingerQueue[i] = setTimeout(function(i) { setTimeout(checkfingerprint(i), 0) }, 0, i);
+                }
             });
             function sortObject(obj) {
                 var arr = [];
@@ -582,9 +587,14 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                 return arr;
             }
 
-            function checkfingerprint() {
+            function checkfingerprint(pos) {
+                var queueId = fingerQueue[pos];
+
                 $("#calcFingerprints").prop('disabled', true).css('backgroundColor', '#F4F4F4').html('Checking ' + (totalFingerprints - fingerprintList.length + 1) + ' of ' + totalFingerprints + ' fingerprints...');
-                $.get(window.location.origin + '/moderate/fingerprints/' + fingerprintList[0], function(data) {
+
+                var fingerprint = fingerprintList.splice(0, 1);
+
+                $.ajax({url: window.location.origin + '/moderate/fingerprints/' + fingerprint}).done(function(data) {
                     $(data).find('div > a').each(function() {
                         var link = '' + $(this).attr('href');
                         if (typeof names[link] == 'undefined') {
@@ -596,27 +606,37 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                             names[link].count += 1;
                         }
                     });
-                }).done(function() {
-                    fingerprintList.splice(0, 1);
-
+                }).always(function() {
                     if (fingerprintList.length == 0) {
-                        $("#calcFingerprints").remove();
+                        for (i = 0; i < fingerQueue.length; i++)
+                        {
+                            if (fingerQueue[i] == queueId)
+                            {
+                                fingerQueue.splice(i, 1);
+                            }
+                        }
 
-                        arr = sortObject(names);
-                        arr = arr.splice(0, GM_getValue("common_count",5));
-                        var occurrances = $('<div>Top ' + GM_getValue("common_count",5) + ' Name Occurrances in ' + totalFingerprints + ' Fingerprints:</div>');
-                        occurrances.append("<br/>");
+                        if (fingerQueue.length == 0) {
+                            $("#calcFingerprints").remove();
+
+                            arr = sortObject(names);
+                            arr = arr.splice(0, GM_getValue("common_count",5));
+                            var occurrances = $('<div>Top ' + GM_getValue("common_count",5) + ' Name Occurrances in ' + totalFingerprints + ' Fingerprints:</div>');
+                            occurrances.append("<br/>");
 
 
-                        $.each(arr, function(key, value) {
-                            var link = $("<a href = '" + arr[key].key + "'>" + arr[key].value.name + " - <strong>Appears " + arr[key].value.count + " times</strong></a>");
-                            colorAccountInfo(link);
-                            occurrances.append(link).append("<br/>");
-                        });
+                            $.each(arr, function(key, value) {
+                                var link = $("<a href = '" + arr[key].key + "'>" + arr[key].value.name + " - <strong>Appears " + arr[key].value.count + " times</strong></a>");
+                                colorAccountInfo(link);
+                                occurrances.append(link).append("<br/>");
+                            });
 
-                        $("#sharedAccounts").append(occurrances);
-                    } else {
-                        checkfingerprint();
+                            $("#sharedAccounts").append(occurrances);
+                        }
+                    }
+                    else
+                    {
+                        checkfingerprint(pos);
                     }
                 });
             }
@@ -756,3 +776,68 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
         });
     }
 }
+
+// global variable defined in the required gist containing high risk ip's
+highRiskIPs = highRiskIPs.split(',');
+
+// inject custom style for highlighting of ips
+$('head').append('<style> .highlight { text-decoration: underline !important; color: red !important; } </style>');
+
+// custom jquery function to search elements and highlight parts of the ip matching high risk ips
+jQuery.fn.highlightRisk = function() {
+	var node = this[0], bestMatch = null, bestLength = null;
+    
+    // for each ip found on the page we need to check against every high risk ip and identifier the ip that matches best
+	$.each(highRiskIPs, function(index, ip) {
+		ip = ip.split('.');
+
+		var regex = new RegExp('\\b' + ip[0] + '(?=\\.\\d+\\.\\d+\\.\\d+)(\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?)?', 'i');
+		var match = regex.exec(node.data);
+
+		if (match != null)
+		{
+			if (bestMatch == null)
+			{
+				bestMatch = regex;
+				bestLength = match[0].length;
+			}
+			else
+			{
+				if (bestLength < match[0].length)
+				{
+					bestMatch = regex;
+					bestLength = match[0].length;
+				}
+			}
+		}
+	});
+
+    // use the best matching high risk ip and highlight the matching sections of the ip being checked
+	if (bestMatch != null)
+	{
+		var pos = node.data.search(bestMatch);
+        var match = node.data.match(bestMatch);
+        var spanNode = document.createElement('span');
+
+        spanNode.className = 'highlight';
+
+        var middleBit = node.splitText(pos);
+        var endBit = middleBit.splitText(match[0].length);
+        var middleClone = middleBit.cloneNode(true);
+
+        spanNode.appendChild(middleClone);
+        middleBit.parentNode.replaceChild(spanNode, middleBit);
+    }
+};
+
+// 1 second interval to check for new ips to match against
+setInterval(function() {
+	$('a:visible, span:visible').contents().each(function() {
+    	if ($(this)[0].nodeType == 3 && $(this)[0].length > 0 && /\d+\.\d+\.\d+\.\d+/.test($(this)[0].nodeValue))
+    	{
+    		setTimeout(function(ele) {
+        		$(ele).highlightRisk();
+        	}, 0, this);
+    	}
+	});
+}, 1000);
