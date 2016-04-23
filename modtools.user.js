@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.3.0
+// @version      1.4.0
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -15,6 +15,119 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addValueChangeListener
 // ==/UserScript==
+
+var bizAPI = "http://kylemcgrogan.com/api/";
+var commentAPI = bizAPI + "comments/";
+var evasionAPI = bizAPI + "evasion/";
+var evasionSection = function() {
+    var isProfile = window.location.href.indexOf("users/") > 0;
+    var isIP = window.location.href.indexOf("ips/") > 0;
+    if (!(isProfile || isIP)) return;
+
+    var pageId = window.location.href.substring(window.location.href.lastIndexOf("/") + 1);
+
+    var route = 'evasion_profile';
+    if (isIP) {
+        route = 'evasion_ips';
+    }
+
+    $.get(evasionAPI + "find_evader/" + pageId, {}, function(response) {
+        $('head').append('<style> .evasionSection { float:right; width:35%; height:%; border-style: solid; border-width: 2px; padding:10px; margin-right:10%;} .pad {padding: 10px;} .indent {padding-left:10px;}</style>');
+        var evasionSection = $("<div class='evasionSection pad'/>"),
+            addAccount,
+            addIP;
+
+        if (response.length == 0) {
+            var newEvasionProfile = $('<button id="newProfile" class="small">Make new Ban Evasion Profile</button>');
+            newEvasionProfile.on('click', function() {
+                $.post(evasionAPI + route, {account_id:pageId}, function(res) {
+                    location.reload();
+                })
+            });
+
+            evasionSection.append(newEvasionProfile);
+        }
+
+        if ((response.length == 0 && isProfile) || isIP) {
+            var existingEvasionProfile = $('<button id="existingProfile" class="small">Add to existing Ban Evasion Profile</button>');
+            existingEvasionProfile.on('click', function() {
+                var evasionId = prompt("Enter profile ID of evader", "");
+                if (evasionId != "" && evasionId != null) {
+                    $.post(evasionAPI + route, {account_id:pageId, existing_id:evasionId}, function(res) {
+                        location.reload();
+                    });
+                }
+            });
+            evasionSection.append(existingEvasionProfile);
+        }
+
+        var evasionAccounts = $("<ul class='pad'/>");
+        response.forEach(function(banProfile, index, array) {
+            var evasionAccount = $("<li class='pad'/>");
+            evasionAccount.append("<h2>Evasion Profile:</h2>");
+            if (banProfile.profiles.length > 0) {
+                var accounts = $("<p class='evasion_accounts' class='pad'></p>");
+                accounts.append("<h2 class='indent'>Accounts</h2>");
+                var accountList = $("<ul class='indent'/>");
+
+                banProfile.profiles.forEach(function(profile, i, a) {
+                    var link = "<a class='ban_profile_account' href='//" + window.location.hostname + "/moderate/users/" + profile.profile_id +"'>" + profile.profile_id +"</a>";
+                    var removeAccount = "<span class='removeAccount' data-id='"+profile.id+"'> ✗</span>";
+                    accountList.append("<li class='indent'>" + (link + removeAccount) + "</li>");
+                });
+                accounts.append(accountList);
+                evasionAccount.append(accounts);
+            }
+
+            if (banProfile.ranges.length > 0) {
+                var ips = $("<p class='evasion_ips' class='pad'></p>");
+                ips.append("<h2 class='indent'>IPs</h2>");
+
+                var ipList = $("<ul class='indent'/>");
+                banProfile.ranges.forEach(function(ip, i, a) {
+                    var link = "<a href='//" + window.location.hostname + "/moderate/ips/" + ip.tagpro +"'>" + ip.tagpro +"</a>";
+                    var removeIP = "<span class='removeIP' data-id='"+ip.id+"'> ✗</span>";
+                    ipList.append("<li class='indent'>" + (link + removeIP) + "</li>");
+                });
+                ips.append(ipList);
+                evasionAccount.append(ips);
+            }
+            evasionAccounts.append(evasionAccount);
+        });
+        evasionSection.append(evasionAccounts);
+        $('form').before(evasionSection);
+        $("a.ban_profile_account").each(function(index, element) {
+            var el = $(element);
+            colorAccountInfo(el);
+        });
+
+        $('.removeAccount').on('click', function(el) {
+            var accountId = $(this).data('id');
+            $.ajax({
+                url: evasionAPI + "evasion_profile/" + accountId,
+                type: 'DELETE',
+                success: function(){
+                    var id = this.url.substring(this.url.lastIndexOf("/")+1);
+                    $(".removeAccount[data-id='"+id+"']").parent().remove();
+                }
+            });
+        });
+        $('.removeIP').on('click', function(el) {
+            var ipId = $(this).data('id');
+            $.ajax({
+                url: evasionAPI + "evasion_ips/" + ipId,
+                type: 'DELETE',
+                success: function(){
+                    var id = this.url.substring(this.url.lastIndexOf("/")+1);
+                    $(".removeIP[data-id='"+id+"']").parent().remove();
+                }
+            });
+        });
+    });
+
+
+
+}
 
 if (("Notification" in window)) {
     if (Notification.permission !== "granted" && Notification.permission !== 'denied') {
@@ -130,8 +243,14 @@ function setMod() {
 }
 setMod();
 
+/*
+ * For some reason, crosstab.util.tabs is coming up as empty sometimes, so wrap this.
+ * It means we don't get the API calls sometimes though.
+ */
 function isMasterTab() {
-    return crosstab.util.tabs[crosstab.util.keys.MASTER_TAB].id === crosstab.id;
+    return  crosstab.util.tabs[crosstab.util.keys.MASTER_TAB] ?
+                crosstab.util.tabs[crosstab.util.keys.MASTER_TAB].id === crosstab.id
+                :false;
 }
 
 // Check every second, only poll every 5 though.  Tab could become active partway through.
@@ -301,6 +420,9 @@ var newAcntHours = 48;
 function colorAccountInfo(accountLink) {
     $.get(accountLink[0].href, function (data) {
         var children = $(data).children("form").children();
+        var reserved = $(children[0]).find("span").text();
+        var display = $(children[1]).find("span").text();
+        accountLink.attr("data-name", reserved?reserved:display);
         var hoursAgo = ($(children[2]).children("span").text());
         var lastIp = ($(children[3]).children("a").text());
         var accountAge = ($(children[4]).children("span").text());
@@ -529,6 +651,7 @@ if(window.location.pathname.indexOf('chat') > -1) {
 }
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
+    evasionSection();
     if(window.location.pathname.indexOf('users') > -1) {
         var fingerprints = $('a[href*="fingerprints"]').parent();
         var par = fingerprints.parent();
@@ -740,7 +863,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     if(profId !== 'users') {
         $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
 
-        $.get("http://104.236.225.6/comment/"+profId, function (data) {
+        $.get(commentAPI + "comment/"+profId, function (data) {
             $(data).insertAfter("#comment_title");
 
             $("<textarea id='comment_box' />").insertAfter($('#comments'));
@@ -754,7 +877,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                     if(commented === false) {
                         commented = true;
                         if (GM_getValue('mod_username') !== undefined) {
-                            $.post( "http://104.236.225.6/comment", { profile: profId, comment: text, modName: GM_getValue('mod_username') })
+                            $.post( commentAPI + "comment", { profile: profId, comment: text, modName: GM_getValue('mod_username') })
                             .done(function( data ) {
                                 location.reload();
                             });
@@ -777,6 +900,8 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     }
 }
 
+
+
 // global variable defined in the required gist containing high risk ip's
 highRiskIPs = highRiskIPs.split(',');
 
@@ -786,7 +911,7 @@ $('head').append('<style> .highlight { text-decoration: underline !important; co
 // custom jquery function to search elements and highlight parts of the ip matching high risk ips
 jQuery.fn.highlightRisk = function() {
 	var node = this[0], bestMatch = null, bestLength = null;
-    
+
     // for each ip found on the page we need to check against every high risk ip and identifier the ip that matches best
 	$.each(highRiskIPs, function(index, ip) {
 		ip = ip.split('.');
