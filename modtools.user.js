@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.0
+// @version      1.4.1
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @include      http://tagpro-*.koalabeast.com/moderate/*
@@ -944,7 +944,7 @@ jQuery.fn.highlightRisk = function() {
         var match = node.data.match(bestMatch);
         var spanNode = document.createElement('span');
 
-        spanNode.className = 'highlight';
+        spanNode.className = 'highlight ipchecked';
 
         var middleBit = node.splitText(pos);
         var endBit = middleBit.splitText(match[0].length);
@@ -957,12 +957,13 @@ jQuery.fn.highlightRisk = function() {
 
 // 1 second interval to check for new ips to match against
 setInterval(function() {
-	$('a:visible, span:visible').contents().each(function() {
-    	if ($(this)[0].nodeType == 3 && $(this)[0].length > 0 && /\d+\.\d+\.\d+\.\d+/.test($(this)[0].nodeValue))
-    	{
-    		setTimeout(function(ele) {
-        		$(ele).highlightRisk();
-        	}, 0, this);
-    	}
+	$('a, span').not('.ipchecked').contents().each(function() {
+    	if ($(this)[0].nodeType == 3 && $(this)[0].length > 0 && /\d+\.\d+\.\d+\.\d+/.test($(this)[0].nodeValue)) {
+            setTimeout(function(ele) {
+                $(ele).highlightRisk();
+            }, 0, this);
+    	} else {
+            $(this).parent().addClass('ipchecked');
+        }
 	});
 }, 1000);
