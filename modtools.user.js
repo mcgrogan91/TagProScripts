@@ -2,9 +2,10 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.1
+// @version      1.4.2
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
+// @contributor  OmicroN
 // @include      http://tagpro-*.koalabeast.com/moderate/*
 // @include      http://tangent.jukejuice.com/moderate/*
 // @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js
@@ -916,7 +917,7 @@ jQuery.fn.highlightRisk = function() {
 	$.each(highRiskIPs, function(index, ip) {
 		ip = ip.split('.');
 
-		var regex = new RegExp('\\b' + ip[0] + '(?=\\.\\d+\\.\\d+\\.\\d+)(\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?)?', 'i');
+		var regex = new RegExp('\\b' + ip[0] + '\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?', 'i');
 		var match = regex.exec(node.data);
 
 		if (match != null)
@@ -944,6 +945,7 @@ jQuery.fn.highlightRisk = function() {
         var match = node.data.match(bestMatch);
         var spanNode = document.createElement('span');
 
+        // since our highlighting is wrapped in a span we must add ipchecked to it so it doesn't get picked up as an unchecked element next interval
         spanNode.className = 'highlight ipchecked';
 
         var middleBit = node.splitText(pos);
@@ -958,12 +960,13 @@ jQuery.fn.highlightRisk = function() {
 // 1 second interval to check for new ips to match against
 setInterval(function() {
 	$('a, span').not('.ipchecked').contents().each(function() {
+        // set this element as checked so its not checked again; we must use parent because .contents() pulls the text node (nodeType 3) not the element that contains the text
+        $(this).parent().addClass('ipchecked');
+
     	if ($(this)[0].nodeType == 3 && $(this)[0].length > 0 && /\d+\.\d+\.\d+\.\d+/.test($(this)[0].nodeValue)) {
             setTimeout(function(ele) {
                 $(ele).highlightRisk();
             }, 0, this);
-    	} else {
-            $(this).parent().addClass('ipchecked');
-        }
+    	}
 	});
 }, 1000);
