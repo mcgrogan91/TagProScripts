@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.2
+// @version      1.4.3
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -10,7 +10,6 @@
 // @include      http://tangent.jukejuice.com/moderate/*
 // @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/crosstab/0.2.12/crosstab.min.js
-// @require      https://gist.githubusercontent.com/omicr0n/2649a1445aef4174a140684044b2755f/raw/tagpro-highriskips.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
@@ -903,9 +902,6 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
 
 
 
-// global variable defined in the required gist containing high risk ip's
-highRiskIPs = highRiskIPs.split(',');
-
 // inject custom style for highlighting of ips
 $('head').append('<style> .highlight { text-decoration: underline !important; color: red !important; } </style>');
 
@@ -939,9 +935,8 @@ jQuery.fn.highlightRisk = function() {
 	});
 
     // use the best matching high risk ip and highlight the matching sections of the ip being checked
-	if (bestMatch != null)
-	{
-		var pos = node.data.search(bestMatch);
+    if (bestMatch != null) {
+        var pos = node.data.search(bestMatch);
         var match = node.data.match(bestMatch);
         var spanNode = document.createElement('span');
 
@@ -957,16 +952,21 @@ jQuery.fn.highlightRisk = function() {
     }
 };
 
-// 1 second interval to check for new ips to match against
-setInterval(function() {
-	$('a, span').not('.ipchecked').contents().each(function() {
-        // set this element as checked so its not checked again; we must use parent because .contents() pulls the text node (nodeType 3) not the element that contains the text
-        $(this).parent().addClass('ipchecked');
+// Grab the list of High Risk IPs
+$.get(evasionAPI + 'evaders', function(response) {
+    highRiskIPs = JSON.parse(response);
 
-    	if ($(this)[0].nodeType == 3 && $(this)[0].length > 0 && /\d+\.\d+\.\d+\.\d+/.test($(this)[0].nodeValue)) {
-            setTimeout(function(ele) {
-                $(ele).highlightRisk();
-            }, 0, this);
-    	}
-	});
-}, 1000);
+    // 1 second interval to check for new ips to match against
+    setInterval(function() {
+        $('a, span').not('.ipchecked').contents().each(function() {
+            // set this element as checked so its not checked again; we must use parent because .contents() pulls the text node (nodeType 3) not the element that contains the text
+            $(this).parent().addClass('ipchecked');
+
+            if ($(this)[0].nodeType == 3 && $(this)[0].length > 0 && /\d+\.\d+\.\d+\.\d+/.test($(this)[0].nodeValue)) {
+                setTimeout(function(ele) {
+                    $(ele).highlightRisk();
+                }, 0, this);
+            }
+        });
+    }, 1000);
+});
