@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.3
+// @version      1.4.4
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -96,6 +96,32 @@ var evasionSection = function() {
         });
         evasionSection.append(evasionAccounts);
         $('form').before(evasionSection);
+        if (isIP) {
+            $.get(evasionAPI + "suspicious/" + pageId, {}, function(response) {
+                if (response[2] || response[3]) {
+                    var suspiciousSection = $("<div/>");
+                    suspiciousSection.append('<h2>Similar Flagged IPs</h2>');
+                    if (response[3]) {
+                        var ipList = $("<ul/>");
+                        response[3].forEach(function(item) {
+                          ipList.append("<li><a href='//" + window.location.hostname + "/moderate/ips/" + item +"'>" + item +"</a></li>" )
+                        });
+                        ipList.prepend("Very Similar: ");
+                        suspiciousSection.append(ipList);
+                    }
+
+                    if (response[2]) {
+                        var ipList = $("<ul/>");
+                        response[2].forEach(function(item) {
+                          ipList.append("<li><a href='//" + window.location.hostname + "/moderate/ips/" + item +"'>" + item +"</a></li>" )
+                        });
+                        ipList.prepend("Somewhat Similar: ");
+                        suspiciousSection.append(ipList);
+                    }
+                }
+                $(".evasionSection").append(suspiciousSection);
+            });
+        }
         $("a.ban_profile_account").each(function(index, element) {
             var el = $(element);
             colorAccountInfo(el);
