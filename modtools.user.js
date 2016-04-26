@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.4
+// @version      1.4.6
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -25,15 +25,18 @@ var evasionSection = function() {
     if (!(isProfile || isIP)) return;
 
     var pageId = window.location.href.substring(window.location.href.lastIndexOf("/") + 1);
-
     var route = 'evasion_profile';
+
     if (isIP) {
         route = 'evasion_ips';
+    } else {
+        var speclink = $('a:contains("Spectate")');
+        speclink.attr('href', speclink.attr('href') + '&target=' + encodeURIComponent($('label:contains("Display Name")').next().text()));
     }
 
     $.get(evasionAPI + "find_evader/" + pageId, {}, function(response) {
-        $('head').append('<style> .evasionSection { float:right; width:35%; height:%; border-style: solid; border-width: 2px; padding:10px; margin-right:10%;} .pad {padding: 10px;} .indent {padding-left:10px;}</style>');
-        var evasionSection = $("<div class='evasionSection pad'/>"),
+        $('head').append('<style> .evasionSection { float:right; width:50%; border-left: 1px solid #fff; padding-left:20px;} .pad {padding: 10px;} .indent {padding-left:10px;}</style>');
+        var evasionSection = $("<div class='evasionSection'/>"),
             addAccount,
             addIP;
 
@@ -42,7 +45,7 @@ var evasionSection = function() {
             newEvasionProfile.on('click', function() {
                 $.post(evasionAPI + route, {account_id:pageId}, function(res) {
                     location.reload();
-                })
+                });
             });
 
             evasionSection.append(newEvasionProfile);
@@ -61,12 +64,12 @@ var evasionSection = function() {
             evasionSection.append(existingEvasionProfile);
         }
 
-        var evasionAccounts = $("<ul class='pad'/>");
+        var evasionAccounts = $("<div/>");
         response.forEach(function(banProfile, index, array) {
-            var evasionAccount = $("<li class='pad'/>");
-            evasionAccount.append("<h2>Evasion Profile:</h2>");
+            var evasionAccount = $("<div class='pad'/>");
+            evasionAccount.append("<h2>Evasion Profile</h2>");
             if (banProfile.profiles.length > 0) {
-                var accounts = $("<p class='evasion_accounts' class='pad'></p>");
+                var accounts = $("<p class='evasion_accounts' class=''></p>");
                 accounts.append("<h2 class='indent'>Accounts</h2>");
                 var accountList = $("<ul class='indent'/>");
 
@@ -96,32 +99,34 @@ var evasionSection = function() {
         });
         evasionSection.append(evasionAccounts);
         $('form').before(evasionSection);
-        if (isIP) {
-            $.get(evasionAPI + "suspicious/" + pageId, {}, function(response) {
-                if (response[2] || response[3]) {
-                    var suspiciousSection = $("<div/>");
-                    suspiciousSection.append('<h2>Similar Flagged IPs</h2>');
-                    if (response[3]) {
-                        var ipList = $("<ul/>");
-                        response[3].forEach(function(item) {
-                          ipList.append("<li><a href='//" + window.location.hostname + "/moderate/ips/" + item +"'>" + item +"</a></li>" )
-                        });
-                        ipList.prepend("Very Similar: ");
-                        suspiciousSection.append(ipList);
-                    }
 
-                    if (response[2]) {
-                        var ipList = $("<ul/>");
-                        response[2].forEach(function(item) {
-                          ipList.append("<li><a href='//" + window.location.hostname + "/moderate/ips/" + item +"'>" + item +"</a></li>" )
-                        });
-                        ipList.prepend("Somewhat Similar: ");
-                        suspiciousSection.append(ipList);
-                    }
+        if (isProfile) pageId = $('label:contains("Last IP")').next().text();
+
+        $.get(evasionAPI + "suspicious/" + pageId, {}, function(response) {
+            if (response[2] || response[3]) {
+                var suspiciousSection = $("<div class='pad' />");
+                suspiciousSection.append('<h2>Similar Flagged IPs</h2>');
+                if (response[3]) {
+                    var ipList = $("<ul class='indent' />");
+                    response[3].forEach(function(item) {
+                        ipList.append("<li class='indent'><a href='//" + window.location.hostname + "/moderate/ips/" + item +"'>" + item +"</a></li>" );
+                    });
+                    ipList.prepend("<h2>Very Similar</h2>");
+                    suspiciousSection.append(ipList);
                 }
-                $(".evasionSection").append(suspiciousSection);
-            });
-        }
+
+                if (response[2]) {
+                    var ipList = $("<ul class='indent' />");
+                    response[2].forEach(function(item) {
+                        ipList.append("<li class='indent'><a href='//" + window.location.hostname + "/moderate/ips/" + item +"'>" + item +"</a></li>" );
+                    });
+                    ipList.prepend("<h2>Somewhat Similar</h2>");
+                    suspiciousSection.append(ipList);
+                }
+            }
+            $(".evasionSection").append(suspiciousSection);
+        });
+
         $("a.ban_profile_account").each(function(index, element) {
             var el = $(element);
             colorAccountInfo(el);
@@ -150,10 +155,7 @@ var evasionSection = function() {
             });
         });
     });
-
-
-
-}
+};
 
 if (("Notification" in window)) {
     if (Notification.permission !== "granted" && Notification.permission !== 'denied') {
