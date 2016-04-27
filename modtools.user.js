@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.6
+// @version      1.4.7
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -100,9 +100,9 @@ var evasionSection = function() {
         evasionSection.append(evasionAccounts);
         $('form').before(evasionSection);
 
-        if (isProfile) pageId = $('label:contains("Last IP")').next().text();
+        if (isProfile) lastIP = $('label:contains("Last IP")').next().text();
 
-        $.get(evasionAPI + "suspicious/" + pageId, {}, function(response) {
+        $.get(evasionAPI + "suspicious/" + lastIP, {}, function(response) {
             if (response[2] || response[3]) {
                 var suspiciousSection = $("<div class='pad' />");
                 suspiciousSection.append('<h2>Similar Flagged IPs</h2>');
@@ -164,7 +164,7 @@ if (("Notification" in window)) {
 }
 
 var optionsLink = $('<a href="#" id="options">Options</a>');
-var optionsPage = $("<div style='padding:20px'/>");
+var optionsPage = $("<div/>");
 $("a[href='/moderate/modactions']").after(optionsLink);
 optionsPage.append("SETTINGS!<br/><br/>");
 optionsPage.append("<input type='checkbox' id='longTime'>Full time on Chat Page</input> (Adds seconds to times)<br/><br/>");
@@ -198,7 +198,7 @@ function prepToggle(id, gm_val) {
 }
 optionsLink.on('click',function() {
     $("#filters").remove();
-    var contentSection = $("#content");
+    var contentSection = $("#content").addClass('noFilters pad');
     contentSection.empty();
     contentSection.append(optionsPage);
     prepToggle("#longTime", "longTime");
@@ -215,13 +215,13 @@ optionsLink.after(supportLink);
 supportLink.on('click', displaySupport);
 function displaySupport() {
     $("#filters").remove();
-    var contentSection = $("#content");
+    var contentSection = $("#content").addClass('noFilters pad');
     contentSection.empty();
     contentSection.append(buildSupport());
 }
 
 function buildSupport() {
-    var supportPage = $("<div id='supportPage' style='padding:20px'/>");
+    var supportPage = $("<div id='supportPage'/>");
     var knownTickets = JSON.parse(GM_getValue('known_tickets',"{}"));
 
     var waitingCount = 0;
