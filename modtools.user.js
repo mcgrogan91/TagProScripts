@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.7
+// @version      1.4.8
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -100,7 +100,11 @@ var evasionSection = function() {
         evasionSection.append(evasionAccounts);
         $('form').before(evasionSection);
 
-        if (isProfile) lastIP = $('label:contains("Last IP")').next().text();
+        if (isProfile) {
+            lastIP = $('label:contains("Last IP")').next().text();
+        } else {
+            lastIP = pageId;
+        }
 
         $.get(evasionAPI + "suspicious/" + lastIP, {}, function(response) {
             if (response[2] || response[3]) {
