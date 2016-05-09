@@ -7,7 +7,7 @@
 // @include       http://tagpro-*.koalabeast.com*
 // @author        turtlemansam and help from bizkut's script
 // @contributor   OmicroN
-// @version       2.0
+// @version       2.1
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
@@ -60,7 +60,7 @@ $(document).ready(function(){
                     clearInterval(gameloaded);
 
                     for (var playerId in tagpro.players) {
-                        if (tagpro.players[playerId].name == querystring('target')) {
+                        if (tagpro.players[playerId].name.toLowerCase() == querystring('target').toLowerCase()) {
                             tagpro.playerId = playerId;
 
                             break;
