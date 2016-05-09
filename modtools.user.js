@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.8
+// @version      1.4.9
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -29,6 +29,59 @@ var evasionSection = function() {
 
     if (isIP) {
         route = 'evasion_ips';
+
+        /////////////// GRAB SPECTATOR LINK FOR UNREGISTERED USERS
+
+        // start with getting the ip
+        var ip = $('label:contains("IP Address")').next().text();
+
+        // search the last 15 min of activity to see if still possibly playing
+        $.getJSON('http://tagpro-origin.koalabeast.com/moderate/chat?hours=0.25&ip=' + ip, function(data) {
+            if (Object.keys(data).length)
+            {
+                // user the latest activity to calculate last activity
+                var lastActivity = (((new Date()).getTime() - (new Date(data[0].when)).getTime()) / 1000 / 60 * 0.0166).toFixed(1);
+
+                $('label:contains("IP Address")').parent().after('<div><label class="inline">Recent Activity</label><span class="ipchecked">' + lastActivity + ' hours ago</span></div>');
+
+                var users = {};
+
+                // loop through last 15 min of activity and find any
+                Object.keys(data).forEach(function(item, index) {
+                    if (typeof users[data[index].displayName] === 'undefined')
+                    {
+                        users[data[index].displayName] = data[index].gameId;
+                    }
+                });
+
+                // search found active users in last 15 minutes
+                if (Object.keys(users).length)
+                {
+                    // search active games list
+                    $.getJSON('http://tagpro-origin.koalabeast.com/moderate/games', function(data4) {
+                        // search through last active users/games
+                        Object.keys(users).forEach(function(name, index) {
+                            var gameId = users[name];
+                            var someName = name;
+
+                            // if last active users game is found in the current active games list then appaend spectator link to page
+                            Object.keys(data4).forEach(function(item, index) {
+                                if (data4[index].gameId == gameId)
+                                {
+                                    if (data4[index].spectateUrl)
+                                    {
+                                        $('form:first').after('<a href="' + data4[index].spectateUrl + '&amp;target=' + someName + '" target="_blank" class="button tiny ipchecked">Spectate ' + someName + '</a>');
+                                    }
+
+                                    return;
+                                }
+                            });
+                        });
+                    });
+                }
+            }
+        });
+        //////////////////////////
     } else {
         var speclink = $('a:contains("Spectate")');
         speclink.attr('href', speclink.attr('href') + '&target=' + encodeURIComponent($('label:contains("Display Name")').next().text()));
@@ -185,8 +238,8 @@ for(var amount = 0; amount < 10; amount++) {
 }
 countSelect += "</select>  (Number of common accounts to find)<br/><br/>";
 optionsPage.append(countSelect);
-optionsPage.append("<p>Script brought to you by bizkut.  If you have any suggestions for more features, "
-                    +"send a message to me on <a href='https://www.reddit.com/message/compose/?to=bizkut'>reddit!</a></p>");
+optionsPage.append("<p>Script brought to you by bizkut in collaboration with OmicroN.</p><p>If you have any suggestions for more features or bugs, "
+                   +"send a message to bizkut on <a href='https://www.reddit.com/message/compose/?to=bizkut'>reddit</a> or OmicroN on <a href='https://www.reddit.com/message/compose/?to=-OmicroN-'>reddit</a>.</p>");
 
 function prepToggle(id, gm_val) {
     if(GM_getValue(gm_val)===true){
@@ -241,9 +294,9 @@ function buildSupport() {
             style = "";
         }
         ticketRow.html('<a href="http://support.koalabeast.com/#/ticket/'+ ticket.ticket.id
-            +'" '+ style + 'target="_blank">Appeal ' + ticket.ticket.id + ' (Banned by '
-            + (ticket.ticket.bannedBy == GM_getValue('mod_username')? "you":ticket.ticket.bannedBy) + ') - '+ ticket.ticket.comments.length
-            + ' comment'+(ticket.ticket.comments.length!=1?'s':'')+'</a><br/>');
+                       +'" '+ style + 'target="_blank">Appeal ' + ticket.ticket.id + ' (Banned by '
+                       + (ticket.ticket.bannedBy == GM_getValue('mod_username')? "you":ticket.ticket.bannedBy) + ') - '+ ticket.ticket.comments.length
+                       + ' comment'+(ticket.ticket.comments.length!=1?'s':'')+'</a><br/>');
         supportPage.append(ticketRow);
     }
 
@@ -281,8 +334,8 @@ setMod();
  */
 function isMasterTab() {
     return  crosstab.util.tabs[crosstab.util.keys.MASTER_TAB] ?
-                crosstab.util.tabs[crosstab.util.keys.MASTER_TAB].id === crosstab.id
-                :false;
+        crosstab.util.tabs[crosstab.util.keys.MASTER_TAB].id === crosstab.id
+    :false;
 }
 
 // Check every second, only poll every 5 though.  Tab could become active partway through.
@@ -290,7 +343,7 @@ setInterval(checkTickets, 1000);
 function checkTickets() {
     if (GM_getValue('mod_username') !== undefined) {
         if ((GM_getValue('last_ticket_check') === undefined
-            || GM_getValue('last_ticket_check') < ((new Date().getTime() / 1000)) - 5)
+             || GM_getValue('last_ticket_check') < ((new Date().getTime() / 1000)) - 5)
             && isMasterTab()) {
 
             GM_xmlhttpRequest({
@@ -305,7 +358,7 @@ function checkTickets() {
                     tickets.forEach(function(ticket, index, array) {
                         if (appealMatches(ticket.bannedBy)) {
                             var waiting = ticket.comments.length > 0 ?
-                            ticket.comments[ticket.comments.length - 1].author == "ticket creator"
+                                ticket.comments[ticket.comments.length - 1].author == "ticket creator"
                             : true;
 
                             // Notify if waiting
@@ -376,7 +429,7 @@ function notifyOfAppeal(ticket) {
 
 function appealMatches(appealName) {
     return (appealName.toUpperCase() == GM_getValue('mod_username').toUpperCase()) ||
-    (GM_getValue('alert_community') && appealName.toUpperCase() == 'COMMUNITY');
+        (GM_getValue('alert_community') && appealName.toUpperCase() == 'COMMUNITY');
 }
 
 GM_addValueChangeListener('known_tickets', buildSupport);
@@ -513,9 +566,9 @@ if (window.location.pathname.indexOf("reports") > -1) {
             var $result = $template.clone();
             return $result.find("[data-bind]").each(function() {
                 var property = $(this).attr("data-bind"),
-                format = $(this).attr("data-format"),
-                filterProperty = $(this).attr("data-filter-bind"),
-                value = null;
+                    format = $(this).attr("data-format"),
+                    filterProperty = $(this).attr("data-filter-bind"),
+                    value = null;
                 eval("value = obj." + property);
                 if(property === "gameId") {
                     games[value] = games[value]? games[value]+1 : 1;
@@ -537,27 +590,27 @@ if (window.location.pathname.indexOf("reports") > -1) {
                 $(this).text(value)
             }), $result.find("button[data-link]").each(function() {
                 var e = "chat?",
-                t = $(this),
-                n = t.parents("tr:first"),
-                r = $(this).attr("data-params").split(" ").map(function(e) {
-                    var t = n.find("[data-bind=" + e + "]"),
-                    r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
-                    return e + "=" + r
-                }).join("&");
+                    t = $(this),
+                    n = t.parents("tr:first"),
+                    r = $(this).attr("data-params").split(" ").map(function(e) {
+                        var t = n.find("[data-bind=" + e + "]"),
+                            r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
+                        return e + "=" + r
+                    }).join("&");
                 t.attr("data-link", e + r)
             }), $result.find("a[data-link]").each(function() {
                 var e = "chat?",
-                t = $(this),
-                n = t.parents("tr:first"),
-                r = $(this).attr("data-params").split(" ").map(function(e) {
-                    var t = n.find("[data-bind=" + e + "]"),
-                    r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
-                    return e + "=" + r
-                }).join("&");
+                    t = $(this),
+                    n = t.parents("tr:first"),
+                    r = $(this).attr("data-params").split(" ").map(function(e) {
+                        var t = n.find("[data-bind=" + e + "]"),
+                            r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
+                        return e + "=" + r
+                    }).join("&");
                 t.attr("href", e + r)
             }), $result.find("[data-if]").each(function() {
                 var property = $(this).attr("data-if"),
-                value = null;
+                    value = null;
                 try {
                     eval("value = obj." + property)
                 } catch (e) {}
@@ -565,12 +618,12 @@ if (window.location.pathname.indexOf("reports") > -1) {
                 $(this).attr("href", $(this).attr("href").replace(/{value}/g, value))
             }), $result.find("[data-strike-if]").each(function() {
                 var property = $(this).attr("data-strike-if"),
-                value = null;
+                    value = null;
                 try {
                     eval("value = obj." + property)
                 } catch (e) {}
                 if (value) return $(this).css("text-decoration", "line-through")
-            }), $result
+                    }), $result
         }
 
         var rows = Array.isArray(data) ? data.map(function(e) {
@@ -592,9 +645,9 @@ if(window.location.pathname.indexOf('chat') > -1) {
             var $result = $template.clone();
             return $result.find("[data-bind]").each(function() {
                 var property = $(this).attr("data-bind"),
-                format = $(this).attr("data-format"),
-                filterProperty = $(this).attr("data-filter-bind"),
-                value = null;
+                    format = $(this).attr("data-format"),
+                    filterProperty = $(this).attr("data-filter-bind"),
+                    value = null;
                 eval("value = obj." + property);
                 if (filterProperty) {
                     var filterValue = null;
@@ -607,27 +660,27 @@ if(window.location.pathname.indexOf('chat') > -1) {
                 $(this).text(value)
             }), $result.find("button[data-link]").each(function() {
                 var e = "chat?",
-                t = $(this),
-                n = t.parents("tr:first"),
-                r = $(this).attr("data-params").split(" ").map(function(e) {
-                    var t = n.find("[data-bind=" + e + "]"),
-                    r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
-                    return e + "=" + r
-                }).join("&");
+                    t = $(this),
+                    n = t.parents("tr:first"),
+                    r = $(this).attr("data-params").split(" ").map(function(e) {
+                        var t = n.find("[data-bind=" + e + "]"),
+                            r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
+                        return e + "=" + r
+                    }).join("&");
                 t.attr("data-link", e + r)
             }), $result.find("a[data-link]").each(function() {
                 var e = "chat?",
-                t = $(this),
-                n = t.parents("tr:first"),
-                r = $(this).attr("data-params").split(" ").map(function(e) {
-                    var t = n.find("[data-bind=" + e + "]"),
-                    r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
-                    return e + "=" + r
-                }).join("&");
+                    t = $(this),
+                    n = t.parents("tr:first"),
+                    r = $(this).attr("data-params").split(" ").map(function(e) {
+                        var t = n.find("[data-bind=" + e + "]"),
+                            r = t.attr("data-filter-value") ? t.attr("data-filter-value") : t.text();
+                        return e + "=" + r
+                    }).join("&");
                 t.attr("href", e + r)
             }), $result.find("[data-if]").each(function() {
                 var property = $(this).attr("data-if"),
-                value = null;
+                    value = null;
                 try {
                     eval("value = obj." + property)
                 } catch (e) {}
@@ -635,12 +688,12 @@ if(window.location.pathname.indexOf('chat') > -1) {
                 $(this).attr("href", $(this).attr("href").replace(/{value}/g, value))
             }), $result.find("[data-strike-if]").each(function() {
                 var property = $(this).attr("data-strike-if"),
-                value = null;
+                    value = null;
                 try {
                     eval("value = obj." + property)
                 } catch (e) {}
                 if (value) return $(this).css("text-decoration", "line-through")
-            }), $result
+                    }), $result
         }
         return Array.isArray(data) ? data.map(function(e) {
             return bind($template, e)
@@ -910,7 +963,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                         commented = true;
                         if (GM_getValue('mod_username') !== undefined) {
                             $.post( commentAPI + "comment", { profile: profId, comment: text, modName: GM_getValue('mod_username') })
-                            .done(function( data ) {
+                                .done(function( data ) {
                                 location.reload();
                             });
                         } else {
@@ -939,32 +992,32 @@ $('head').append('<style> .highlight { text-decoration: underline !important; co
 
 // custom jquery function to search elements and highlight parts of the ip matching high risk ips
 jQuery.fn.highlightRisk = function() {
-	var node = this[0], bestMatch = null, bestLength = null;
+    var node = this[0], bestMatch = null, bestLength = null;
 
     // for each ip found on the page we need to check against every high risk ip and identifier the ip that matches best
-	$.each(highRiskIPs, function(index, ip) {
-		ip = ip.split('.');
+    $.each(highRiskIPs, function(index, ip) {
+        ip = ip.split('.');
 
-		var regex = new RegExp('\\b' + ip[0] + '\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?', 'i');
-		var match = regex.exec(node.data);
+        var regex = new RegExp('\\b' + ip[0] + '\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?', 'i');
+        var match = regex.exec(node.data);
 
-		if (match != null)
-		{
-			if (bestMatch == null)
-			{
-				bestMatch = regex;
-				bestLength = match[0].length;
-			}
-			else
-			{
-				if (bestLength < match[0].length)
-				{
-					bestMatch = regex;
-					bestLength = match[0].length;
-				}
-			}
-		}
-	});
+        if (match != null)
+        {
+            if (bestMatch == null)
+            {
+                bestMatch = regex;
+                bestLength = match[0].length;
+            }
+            else
+            {
+                if (bestLength < match[0].length)
+                {
+                    bestMatch = regex;
+                    bestLength = match[0].length;
+                }
+            }
+        }
+    });
 
     // use the best matching high risk ip and highlight the matching sections of the ip being checked
     if (bestMatch != null) {
