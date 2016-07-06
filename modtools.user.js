@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.9
+// @version      1.4.10
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -36,7 +36,7 @@ var evasionSection = function() {
         var ip = $('label:contains("IP Address")').next().text();
 
         // search the last 15 min of activity to see if still possibly playing
-        $.getJSON('http://tagpro-origin.koalabeast.com/moderate/chat?hours=0.25&ip=' + ip, function(data) {
+        $.getJSON("//" + window.location.hostname + '/moderate/chat?hours=0.25&ip=' + ip, function(data) {
             if (Object.keys(data).length)
             {
                 // user the latest activity to calculate last activity
@@ -58,7 +58,7 @@ var evasionSection = function() {
                 if (Object.keys(users).length)
                 {
                     // search active games list
-                    $.getJSON('http://tagpro-origin.koalabeast.com/moderate/games', function(data4) {
+                    $.getJSON("//" + window.location.hostname + '/moderate/games', function(data4) {
                         // search through last active users/games
                         Object.keys(users).forEach(function(name, index) {
                             var gameId = users[name];
