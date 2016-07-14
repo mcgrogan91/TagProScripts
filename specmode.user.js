@@ -6,8 +6,9 @@
 // @include       http://tangent.jukejuice.com*
 // @include       http://tagpro-*.koalabeast.com*
 // @author        turtlemansam and help from bizkut's script
+// @contributor   bizkut
 // @contributor   OmicroN
-// @version       2.1
+// @version       2.2
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
@@ -28,7 +29,7 @@ function querystring(name, url) {
 
 $(document).ready(function(){
     if(document.URL.endsWith(".com/") === true || document.URL.endsWith("/?spectator=true") === true ) {
-        $('article div.section.smaller:eq(0)').append("<input type='checkbox' id='tglSpec'>Spectator Mode</input>");
+        $('#play-now').parent().append("<br/><input type='checkbox' id='tglSpec'> Spectator Mode</input>");
         $('#optionsName').append("<input type='checkbox' id='tglSpec'>Spectator Mode</input>");
     }
 
