@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.10
+// @version      1.4.11
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -16,7 +16,7 @@
 // @grant        GM_addValueChangeListener
 // ==/UserScript==
 
-var bizAPI = "http://kylemcgrogan.com/api/";
+var bizAPI = "http://104.236.225.6/api/";
 var commentAPI = bizAPI + "comments/";
 var evasionAPI = bizAPI + "evasion/";
 var evasionSection = function() {
