@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.4.11
+// @version      1.5.0
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -19,6 +19,16 @@
 var bizAPI = "http://104.236.225.6/api/";
 var commentAPI = bizAPI + "comments/";
 var evasionAPI = bizAPI + "evasion/";
+
+
+var banAction = function(id, type, count, reason, callback) {
+    var banURL = document.location.origin + '/moderate/' + type + '/' + id + '/ban';
+    $.post(banURL, {
+        reason: reason,
+        banCount: count
+    }, callback);
+}
+
 var evasionSection = function() {
     var isProfile = window.location.href.indexOf("users/") > 0;
     var isIP = window.location.href.indexOf("ips/") > 0;
@@ -36,9 +46,8 @@ var evasionSection = function() {
         var ip = $('label:contains("IP Address")').next().text();
 
         // search the last 15 min of activity to see if still possibly playing
-        $.getJSON("//" + window.location.hostname + '/moderate/chat?hours=0.25&ip=' + ip, function(data) {
-            if (Object.keys(data).length)
-            {
+        $.getJSON(document.location.origin + '/moderate/chat?hours=0.25&ip=' + ip, function(data) {
+            if (Object.keys(data).length) {
                 // user the latest activity to calculate last activity
                 var lastActivity = (((new Date()).getTime() - (new Date(data[0].when)).getTime()) / 1000 / 60 * 0.0166).toFixed(1);
 
@@ -48,17 +57,15 @@ var evasionSection = function() {
 
                 // loop through last 15 min of activity and find any
                 Object.keys(data).forEach(function(item, index) {
-                    if (typeof users[data[index].displayName] === 'undefined')
-                    {
+                    if (typeof users[data[index].displayName] === 'undefined') {
                         users[data[index].displayName] = data[index].gameId;
                     }
                 });
 
                 // search found active users in last 15 minutes
-                if (Object.keys(users).length)
-                {
+                if (Object.keys(users).length) {
                     // search active games list
-                    $.getJSON("//" + window.location.hostname + '/moderate/games', function(data4) {
+                    $.getJSON(document.location.origin + '/moderate/games', function(data4) {
                         // search through last active users/games
                         Object.keys(users).forEach(function(name, index) {
                             var gameId = users[name];
@@ -66,10 +73,8 @@ var evasionSection = function() {
 
                             // if last active users game is found in the current active games list then appaend spectator link to page
                             Object.keys(data4).forEach(function(item, index) {
-                                if (data4[index].gameId == gameId)
-                                {
-                                    if (data4[index].spectateUrl)
-                                    {
+                                if (data4[index].gameId == gameId) {
+                                    if (data4[index].spectateUrl) {
                                         $('form:first').after('<a href="' + data4[index].spectateUrl + '&amp;target=' + someName + '" target="_blank" class="button tiny ipchecked">Spectate ' + someName + '</a>');
                                     }
 
@@ -121,15 +126,37 @@ var evasionSection = function() {
         response.forEach(function(banProfile, index, array) {
             var evasionAccount = $("<div class='pad'/>");
             evasionAccount.append("<h2>Evasion Profile</h2>");
+            var evasionBanButton = $("<button class='small'>Ban Account</button>");
+            var banEvasionReason = 7; //This is hacky as shit.  I should probably search the ban reason list for the id but i'm drunk coding.
+            var evasionBan = function() {
+                if (accountBanList.length != 0) {
+                    var profile = accountBanList.pop();
+                    var banCount = parseInt(profile.el.attr('data-bancount'));
+                    banAction(profile.id, profile.type, banCount + 1, banEvasionReason, evasionBan);
+                } else {
+                    location.reload();
+                }
+            };
+            var accountBanList = [];
+
+            evasionAccount.append(evasionBanButton);
             if (banProfile.profiles.length > 0) {
                 var accounts = $("<p class='evasion_accounts' class=''></p>");
                 accounts.append("<h2 class='indent'>Accounts</h2>");
                 var accountList = $("<ul class='indent'/>");
 
                 banProfile.profiles.forEach(function(profile, i, a) {
-                    var link = "<a class='ban_profile_account' href='//" + window.location.hostname + "/moderate/users/" + profile.profile_id +"'>" + profile.profile_id +"</a>";
-                    var removeAccount = "<span class='removeAccount' data-id='"+profile.id+"'> ✗</span>";
-                    accountList.append("<li class='indent'>" + (link + removeAccount) + "</li>");
+                    var link = $("<a class='ban_profile_account' href='//" + window.location.hostname + "/moderate/users/" + profile.profile_id +"'>" + profile.profile_id +"</a>");
+                    var removeAccount = $("<span class='removeAccount' data-id='"+profile.id+"'> ✗</span>");
+                    accountBanList.push({
+                        id: profile.profile_id,
+                        type: 'users',
+                        el: link
+                    });
+                    var list = $("<li class='indent'></li>");
+                    list.append(link);
+                    list.append(removeAccount);
+                    accountList.append(list);
                 });
                 accounts.append(accountList);
                 evasionAccount.append(accounts);
@@ -141,13 +168,28 @@ var evasionSection = function() {
 
                 var ipList = $("<ul class='indent'/>");
                 banProfile.ranges.forEach(function(ip, i, a) {
-                    var link = "<a href='//" + window.location.hostname + "/moderate/ips/" + ip.tagpro +"'>" + ip.tagpro +"</a>";
-                    var removeIP = "<span class='removeIP' data-id='"+ip.id+"'> ✗</span>";
-                    ipList.append("<li class='indent'>" + (link + removeIP) + "</li>");
+                    var link = $("<a class='ban_profile_ip' href='//" + window.location.hostname + "/moderate/ips/" + ip.tagpro +"'>" + ip.tagpro +"</a>");
+                    var removeIP = $("<span class='removeIP' data-id='"+ip.id+"'> ✗</span>");
+                    accountBanList.push({
+                        id: ip.tagpro,
+                        type: 'ips',
+                        el: link
+                    });
+                    var list = $("<li class='indent'></li>");
+                    list.append(link);
+                    list.append(removeIP);
+
+                    ipList.append(list);
                 });
                 ips.append(ipList);
                 evasionAccount.append(ips);
             }
+            evasionBanButton.on('click', function() {
+                if (dinkProtect(true)) {
+                    evasionBan(accountBanList);
+                }
+            });
+
             evasionAccounts.append(evasionAccount);
         });
         evasionSection.append(evasionAccounts);
@@ -187,6 +229,11 @@ var evasionSection = function() {
         $("a.ban_profile_account").each(function(index, element) {
             var el = $(element);
             colorAccountInfo(el);
+        });
+
+        $("a.ban_profile_ip").each(function(index, element) {
+            var el = $(element);
+            colorAccountInfo(el, false);
         });
 
         $('.removeAccount').on('click', function(el) {
@@ -488,8 +535,8 @@ function bindValue(e) {
     return e ? e : ""
 }
 
-function dinkProtect() {
-    if (GM_getValue("dink_protect") === true) {
+function dinkProtect(override = false) {
+    if (override === true || GM_getValue("dink_protect") === true) {
         if (confirm("Are you sure you want to do that, you dink?")) {
             if (confirm("Like, absolutely sure?")) {
                 return true;
@@ -502,7 +549,7 @@ function dinkProtect() {
 }
 
 var newAcntHours = 48;
-function colorAccountInfo(accountLink) {
+function colorAccountInfo(accountLink, extraInfo = true) {
     $.get(accountLink[0].href, function (data) {
         var children = $(data).children("form").children();
         var reserved = $(children[0]).find("span").text();
@@ -511,14 +558,19 @@ function colorAccountInfo(accountLink) {
         var hoursAgo = ($(children[2]).children("span").text());
         var lastIp = ($(children[3]).children("a").text());
         var accountAge = ($(children[4]).children("span").text());
-        accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge)
+        if (extraInfo) {
+            accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge);
+        }
         var hours = hoursAgo.split(" ")[0];
         var hoursAsFloat = parseFloat(hours);
         var hoursAge = accountAge.split(" ")[0];
         var hoursAgeAsFloat = parseFloat(hoursAge);
 
+        accountLink.attr('data-bancount', $(data).find("#banCount").val());
+
         // Orange/Cyan added for new accounts by Ballzilla
         if (data.indexOf("unbanButton") > -1) {
+
             accountLink.append(" (This user is currently banned)");
             if(hoursAgeAsFloat <= newAcntHours) {
                 accountLink.css({
@@ -737,6 +789,8 @@ if(window.location.pathname.indexOf('chat') > -1) {
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
     evasionSection();
+    var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
+    var section = window.location.pathname.indexOf('users') > -1 ? 'users' : 'ips';
     if(window.location.pathname.indexOf('users') > -1) {
         var fingerprints = $('a[href*="fingerprints"]').parent();
         var par = fingerprints.parent();
@@ -816,10 +870,8 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
                     });
                 }).always(function() {
                     if (fingerprintList.length == 0) {
-                        for (i = 0; i < fingerQueue.length; i++)
-                        {
-                            if (fingerQueue[i] == queueId)
-                            {
+                        for (i = 0; i < fingerQueue.length; i++) {
+                            if (fingerQueue[i] == queueId) {
                                 fingerQueue.splice(i, 1);
                             }
                         }
@@ -841,9 +893,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
 
                             $("#sharedAccounts").append(occurrances);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         checkfingerprint(pos);
                     }
                 });
@@ -932,11 +982,7 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
             banClicked = true;
             if(start < finish) {
                 start++;
-                console.log('banning');
-                $.post(document.location.href + "/ban", {
-                    reason: banReason,
-                    banCount: start
-                }, banCallback);
+                banAction(profId, section, start, banReason, banCallback);
             } else {
                 location.reload();
             }
@@ -944,7 +990,6 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     });
     prevChild.parent().append(submitBan);
 
-    var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
     if(profId !== 'users') {
         $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
 
@@ -1001,17 +1046,12 @@ jQuery.fn.highlightRisk = function() {
         var regex = new RegExp('\\b' + ip[0] + '\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?', 'i');
         var match = regex.exec(node.data);
 
-        if (match != null)
-        {
-            if (bestMatch == null)
-            {
+        if (match != null) {
+            if (bestMatch == null) {
                 bestMatch = regex;
                 bestLength = match[0].length;
-            }
-            else
-            {
-                if (bestLength < match[0].length)
-                {
+            } else {
+                if (bestLength < match[0].length) {
                     bestMatch = regex;
                     bestLength = match[0].length;
                 }
