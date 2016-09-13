@@ -8,7 +8,7 @@
 // @author        turtlemansam and help from bizkut's script
 // @contributor   bizkut
 // @contributor   OmicroN
-// @version       2.2
+// @version       2.3
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
@@ -51,8 +51,19 @@ $(document).ready(function(){
         }
     }
 
-    if (querystring('target'))
+    if (querystring('player_id'))
     {
+        tagpro.ready(function() {
+            var gameloaded;
+
+            gameloaded = setInterval(function() {
+                if ( ! $.isEmptyObject(tagpro.players)) {
+                    clearInterval(gameloaded);
+                    tagpro.playerId = querystring('player_id');
+                }
+            }, 100);
+        });
+    } else if (querystring('target')) {
         tagpro.ready(function() {
             var gameloaded;
 
