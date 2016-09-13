@@ -8,7 +8,7 @@
 // @author        turtlemansam and help from bizkut's script
 // @contributor   bizkut
 // @contributor   OmicroN
-// @version       2.3.1
+// @version       2.3.2
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
@@ -51,34 +51,33 @@ $(document).ready(function(){
         }
     }
 
+    var gameloaded, player, intervalFunc;
     if (player = querystring('player_id')) {
-        tagpro.ready(function() {
-            var gameloaded;
+        intervalFunc = function() {
+            if ( ! $.isEmptyObject(tagpro.players)) {
+                clearInterval(gameloaded);
+                tagpro.playerId = player;
+            }
+        };
 
-            gameloaded = setInterval(function() {
-                if ( ! $.isEmptyObject(tagpro.players)) {
-                    clearInterval(gameloaded);
-                    tagpro.playerId = player;
-                }
-            }, 100);
-        });
+
     } else if (player = querystring('target')) {
-        tagpro.ready(function() {
-            var gameloaded;
+        intervalFunc = function() {
+            if ( ! $.isEmptyObject(tagpro.players)) {
+                clearInterval(gameloaded);
+                for (var playerId in tagpro.players) {
+                    if (tagpro.players[playerId].name.toLowerCase() == player.toLowerCase()) {
+                        tagpro.playerId = playerId;
 
-            gameloaded = setInterval(function() {
-                if ( ! $.isEmptyObject(tagpro.players)) {
-                    clearInterval(gameloaded);
-
-                    for (var playerId in tagpro.players) {
-                        if (tagpro.players[playerId].name.toLowerCase() == player.toLowerCase()) {
-                            tagpro.playerId = playerId;
-
-                            break;
-                        }
+                        break;
                     }
                 }
-            }, 100);
+            }
+        };
+    }
+    if (player && intervalFunc) {
+        tagpro.ready(function() {
+            gameloaded = setInterval(intervalFunc, 100);
         });
     }
 });
