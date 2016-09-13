@@ -8,7 +8,7 @@
 // @author        turtlemansam and help from bizkut's script
 // @contributor   bizkut
 // @contributor   OmicroN
-// @version       2.3
+// @version       2.3.1
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
@@ -51,19 +51,18 @@ $(document).ready(function(){
         }
     }
 
-    if (querystring('player_id'))
-    {
+    if (player = querystring('player_id')) {
         tagpro.ready(function() {
             var gameloaded;
 
             gameloaded = setInterval(function() {
                 if ( ! $.isEmptyObject(tagpro.players)) {
                     clearInterval(gameloaded);
-                    tagpro.playerId = querystring('player_id');
+                    tagpro.playerId = player;
                 }
             }, 100);
         });
-    } else if (querystring('target')) {
+    } else if (player = querystring('target')) {
         tagpro.ready(function() {
             var gameloaded;
 
@@ -72,7 +71,7 @@ $(document).ready(function(){
                     clearInterval(gameloaded);
 
                     for (var playerId in tagpro.players) {
-                        if (tagpro.players[playerId].name.toLowerCase() == querystring('target').toLowerCase()) {
+                        if (tagpro.players[playerId].name.toLowerCase() == player.toLowerCase()) {
                             tagpro.playerId = playerId;
 
                             break;
