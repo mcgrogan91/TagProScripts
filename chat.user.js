@@ -5,6 +5,7 @@
 // @version      0.1
 // @description  Lets you chat as a mod in-game
 // @author       wut
+// @contributor   NewCompte
 // @include       http://tangent.jukejuice.com*
 // @include       http://tagpro-*.koalabeast.com*
 // @grant        none
