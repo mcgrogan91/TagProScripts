@@ -401,8 +401,22 @@ function checkTickets() {
                     var knownTickets = JSON.parse(GM_getValue('known_tickets',"{}"));
 
                     GM_setValue('last_ticket_check', (new Date().getTime() / 1000));
-                    var tickets = JSON.parse(response.responseText);
-                    tickets.forEach(function(ticket, index, array) {
+                    try {
+                        var warn = $('#support-warning');
+                        if (warn.length > 0) {
+                            warn.remove();
+                        }
+                        knownTickets = JSON.parse(response.responseText);
+                    } catch (err) {
+                        var warned = $('#support-warning').length > 0;
+                        if (!warned) {
+                            $('header > a').append('<a href="http://support.koalabeast.com/#/login" id="support-warning" target="_blank" style="font-weight:bold;color:red;padding-left:40%;">(You are not logged into the support site)</a>');
+                            console.log('Error happened');
+                            console.dir(err);
+                        }
+                        return;
+                    }
+                    knownTickets.forEach(function(ticket, index, array) {
                         if (appealMatches(ticket.bannedBy)) {
                             var waiting = ticket.comments.length > 0 ?
                                 ticket.comments[ticket.comments.length - 1].author == "ticket creator"
