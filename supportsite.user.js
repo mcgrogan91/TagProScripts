@@ -2,11 +2,11 @@
 // @name         Support Site Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/supportsite.user.js
-// @version      1.1.2
+// @version      1.1.3
 // @description  Canned responses for the most common scenarios, displays ban information from the mod tools based on profileid, integrated wysiwyg markdown editor for easy formating of responses (includes a autosave feature of draft messages), fixes the text/url of those who enter full url's as there profileid rather then just the id itself while making those who enter there name as profile id display as plain text and not a clickable link...
 // @author       Bizkut
 // @contributor  OmicroN
-// @include      http://support.koalabeast.com/*
+// @include      https://support.koalabeast.com/*
 // @connect      koalabeast.com
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
@@ -36,7 +36,7 @@ $('head').append('<script src="//cdn.jsdelivr.net/simplemde/latest/simplemde.min
 $(document).ready(function() {
     main();
 
-    // When navigating away from the site and hitting browser back, the ajax on a page is already loaded before this event is set and fired so we need to manually fire it here 
+    // When navigating away from the site and hitting browser back, the ajax on a page is already loaded before this event is set and fired so we need to manually fire it here
     $(document).trigger('ajaxComplete');
 });
 
@@ -124,6 +124,7 @@ function main() {
                                 className: "fa fa-eraser",
                                 title: "Clear Form & Autosaved Data",
                             }],
+                            spellChecker: false,
                         });
 
                         simplemde.codemirror.on('change', function() {
