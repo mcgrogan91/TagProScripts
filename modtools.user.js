@@ -1049,58 +1049,46 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
 // inject custom style for highlighting of ips
 $('head').append('<style> .highlight { text-decoration: underline !important; color: red !important; } </style>');
 
-var highlightCache = [];
 // custom jquery function to search elements and highlight parts of the ip matching high risk ips
 jQuery.fn.highlightRisk = function() {
     var node = this[0], bestMatch = null, bestLength = null;
 
-    if (!highlightCachepnode.data) {
-        // for each ip found on the page we need to check against every high risk ip and identifier the ip that matches best
-        $.each(highRiskIPs, function(index, ip) {
-            ip = ip.split('.');
+    // for each ip found on the page we need to check against every high risk ip and identifier the ip that matches best
+    $.each(highRiskIPs, function(index, ip) {
+        ip = ip.split('.');
 
-            var regex = new RegExp('\\b' + ip[0] + '\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?', 'i');
-            var match = regex.exec(node.data);
+        var regex = new RegExp('\\b' + ip[0] + '\\.' + ip[1] + '(?=\\.\\d+\\.\\d+)(\\.' + ip[2] + '(?=\\.\\d+)(\.' + ip[3] + ')?)?', 'i');
+        var match = regex.exec(node.data);
 
-            if (match != null) {
-                if (bestMatch == null) {
+        if (match != null) {
+            if (bestMatch == null) {
+                bestMatch = regex;
+                bestLength = match[0].length;
+            } else {
+                if (bestLength < match[0].length) {
                     bestMatch = regex;
                     bestLength = match[0].length;
-                } else {
-                    if (bestLength < match[0].length) {
-                        bestMatch = regex;
-                        bestLength = match[0].length;
-                    }
                 }
             }
-        });
-
-        // use the best matching high risk ip and highlight the matching sections of the ip being checked
-        if (bestMatch != null) {
-            var pos = node.data.search(bestMatch);
-            var match = node.data.match(bestMatch);
-            var spanNode = document.createElement('span');
-
-            // since our highlighting is wrapped in a span we must add ipchecked to it so it doesn't get picked up as an unchecked element next interval
-            spanNode.className = 'highlight ipchecked';
-
-            var middleBit = node.splitText(pos);
-            var endBit = middleBit.splitText(match[0].length);
-            var middleClone = middleBit.cloneNode(true);
-
-            spanNode.appendChild(middleClone);
-            console.log('Span: ');
-            console.dir(spanNode);
-            console.log('Middle: ');
-            console.dir(middleBit);
-            highlightCache[node.data] = [
-                'span': spanNode,
-                'middle': middleBit
-            ];
         }
-    }
+    });
 
-    middleBit.parentNode.replaceChild(spanNode, middleBit);
+    // use the best matching high risk ip and highlight the matching sections of the ip being checked
+    if (bestMatch != null) {
+        var pos = node.data.search(bestMatch);
+        var match = node.data.match(bestMatch);
+        var spanNode = document.createElement('span');
+
+        // since our highlighting is wrapped in a span we must add ipchecked to it so it doesn't get picked up as an unchecked element next interval
+        spanNode.className = 'highlight ipchecked';
+
+        var middleBit = node.splitText(pos);
+        var endBit = middleBit.splitText(match[0].length);
+        var middleClone = middleBit.cloneNode(true);
+
+        spanNode.appendChild(middleClone);
+        middleBit.parentNode.replaceChild(spanNode, middleBit);
+    }
 };
 
 // Grab the list of High Risk IPs
