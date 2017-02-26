@@ -2,12 +2,13 @@
 // @name         Support Site Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/supportsite.user.js
-// @version      1.1.4
+// @version      1.1.5
 // @description  Canned responses for the most common scenarios, displays ban information from the mod tools based on profileid, integrated wysiwyg markdown editor for easy formating of responses (includes a autosave feature of draft messages), fixes the text/url of those who enter full url's as there profileid rather then just the id itself while making those who enter there name as profile id display as plain text and not a clickable link...
 // @author       Bizkut
 // @contributor  OmicroN
 // @kinda helped Anne Frank
 // @include      https://support.koalabeast.com/*
+// @include      http://support.koalabeast.com/*
 // @connect      koalabeast.com
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
