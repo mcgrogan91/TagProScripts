@@ -2,13 +2,12 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.5.0
+// @version      1.5.1
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
 // @include      http://tagpro-*.koalabeast.com/moderate/*
 // @include      http://tangent.jukejuice.com/moderate/*
-// @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/crosstab/0.2.12/crosstab.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
