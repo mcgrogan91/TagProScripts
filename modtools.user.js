@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.5.1
+// @version      1.5.2
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -921,7 +921,12 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
 
     $("#unbanButton").remove();
     var unban = $("<button id='unbanButton' class='tiny'>Unban</button>");
-    prevChild.parent().prev().append(unban);
+    if ($("#muteButton").length) {
+       prevChild.parent().prev().prev().prev().append(unban);
+    }
+    else{
+        prevChild.parent().prev().append(unban);
+    }
 
     var currentBanCount = $("#banCount").val();
     var select = $("<select id = 'removeCount'/>");
