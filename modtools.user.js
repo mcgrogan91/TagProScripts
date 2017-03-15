@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.5.2
+// @version      1.5.3
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -385,7 +385,7 @@ function isMasterTab() {
 }
 
 // Check every second, only poll every 5 though.  Tab could become active partway through.
-setInterval(checkTickets, 1000);
+//setInterval(checkTickets, 1000);
 function checkTickets() {
     if (GM_getValue('mod_username') !== undefined) {
         if ((GM_getValue('last_ticket_check') === undefined
