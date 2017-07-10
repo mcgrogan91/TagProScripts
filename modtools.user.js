@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.5.3
+// @version      1.5.4
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -594,6 +594,10 @@ function colorAccountInfo(accountLink, extraInfo = true) {
                     'color': 'red'
                 })
             }
+        } else if (data.indexOf('unmuteButton') > -1) {
+            accountLink.css({
+                'color': 'yellow'
+            })
         } else if(hoursAgeAsFloat <= newAcntHours) {
             accountLink.css({
                 'color': 'cyan'
