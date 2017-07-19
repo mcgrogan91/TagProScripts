@@ -2,7 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.5.4
+// @version      1.5.6
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -561,6 +561,10 @@ function dinkProtect(override = false) {
     }
 }
 
+function isMuteActive(text) {
+    return text.indexOf("N") >= 0 ? false : true;
+}
+
 var newAcntHours = 48;
 function colorAccountInfo(accountLink, extraInfo = true) {
     $.get(accountLink[0].href, function (data) {
@@ -578,6 +582,7 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         var hoursAsFloat = parseFloat(hours);
         var hoursAge = accountAge.split(" ")[0];
         var hoursAgeAsFloat = parseFloat(hoursAge);
+        var muteText = $(children[9]).find("span").text();
 
         accountLink.attr('data-bancount', $(data).find("#banCount").val());
 
@@ -594,7 +599,7 @@ function colorAccountInfo(accountLink, extraInfo = true) {
                     'color': 'red'
                 })
             }
-        } else if (data.indexOf('unmuteButton') > -1) {
+        } else if (isMuteActive(muteText)) {
             accountLink.css({
                 'color': 'yellow'
             })
