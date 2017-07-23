@@ -2,6 +2,7 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
+
 // @version      1.5.6
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
@@ -26,6 +27,11 @@ var banAction = function(id, type, count, reason, callback) {
         reason: reason,
         banCount: count
     }, callback);
+}
+
+var muteAction = function(id, callback) {
+    var muteURL = document.location.origin + '/moderate/users/' + id + '/mute';
+    $.post(muteURL, callback);
 }
 
 var evasionSection = function() {
@@ -126,6 +132,7 @@ var evasionSection = function() {
             var evasionAccount = $("<div class='pad'/>");
             evasionAccount.append("<h2>Evasion Profile</h2>");
             var evasionBanButton = $("<button class='small'>Ban Account</button>");
+            var evasionMuteButton = $("<button class='small'>Mute Account</button>");
             var banEvasionReason = 7; //This is hacky as shit.  I should probably search the ban reason list for the id but i'm drunk coding.
             var evasionBan = function() {
                 if (accountBanList.length != 0) {
@@ -136,9 +143,18 @@ var evasionSection = function() {
                     location.reload();
                 }
             };
+            var evasionMute = function() {
+                if (usersOnlyList.length != 0) {
+                    var profile = usersOnlyList.pop();
+                    muteAction(profile.id, evasionMute);
+                } else {
+                    location.reload();
+                }
+            };
             var accountBanList = [];
 
             evasionAccount.append(evasionBanButton);
+            evasionAccount.append(evasionMuteButton);
             if (banProfile.profiles.length > 0) {
                 var accounts = $("<p class='evasion_accounts' class=''></p>");
                 accounts.append("<h2 class='indent'>Accounts</h2>");
@@ -185,6 +201,19 @@ var evasionSection = function() {
             }
             evasionBanButton.on('click', function() {
                 if (dinkProtect(true)) {
+                    evasionBan(accountBanList);
+                }
+            });
+            evasionMuteButton.on('click', function() {
+            	usersOnlyList = accountBanList.filter(function(e) {
+				    return e.type === 'users'; //only users can be muted
+				});
+				accountBanList = accountBanList.filter(function(e) {
+					return e.type === 'ips'; //only ips should be banned
+				});
+
+                if (dinkProtect(true)) {
+                    evasionMute(usersOnlyList);
                     evasionBan(accountBanList);
                 }
             });
