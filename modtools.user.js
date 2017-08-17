@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.5.6
+// @version      1.5.7
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -299,10 +299,9 @@ var optionsLink = $('<a href="#" id="options">Options</a>');
 var optionsPage = $("<div/>");
 $("a[href='/moderate/modactions']").after(optionsLink);
 optionsPage.append("SETTINGS!<br/><br/>");
-optionsPage.append("<input type='checkbox' id='longTime'>Full time on Chat Page</input> (Adds seconds to times)<br/><br/>");
-optionsPage.append("<input type='checkbox' id='dinkProtect'>Enable dink protections</input> (Requires verification to ban/unban)<br/><br/>");
-
-optionsPage.append("<input type='checkbox' id='communityAlert'>Community Alerts</input> (Triggers notifications on Community Ban Appeals)<br/><br/>");
+optionsPage.append("<div><input type='checkbox' id='longTime' /><label for='longTime'>Full time on Chat Page (Adds seconds to times)</label></div><br/>");
+optionsPage.append("<div><input type='checkbox' id='dinkProtect' /><label for='dinkProtect'>Enable dink protections (Requires verification to ban/unban)</label></div><br/>");
+optionsPage.append("<div><input type='checkbox' id='communityAlert' /><label for='communityAlert'>Community Alerts (Triggers notifications on Community Ban Appeals)</label></div><br/>");
 var countSelect = "<select id='commonCount'>";
 for(var amount = 0; amount < 10; amount++) {
     if (amount+1 == GM_getValue("common_count", 5)) {
@@ -651,7 +650,7 @@ if (window.location.pathname.indexOf("fingerprints") > -1) {
     });
 }
 if (window.location.pathname.indexOf("reports") > -1) {
-    $("#filters").append("<input type='checkbox' id='toggleSys'>Hide system reports</input>");
+    $("#filters").append("<div style='margin: 0'><input type='checkbox' id='toggleSys' /><label for='toggleSys'>Hide system reports</label></div>");
     if(GM_getValue("hideSystem")===true){
         $("#toggleSys").prop('checked', true);
     }
