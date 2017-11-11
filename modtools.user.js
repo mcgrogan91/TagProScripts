@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.5.7
+// @version      1.5.8
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -590,7 +590,7 @@ function dinkProtect(override = false) {
 }
 
 function isMuteActive(text) {
-    return text.indexOf("N") >= 0 ? false : true;
+    return text.indexOf("in") >= 0;
 }
 
 var newAcntHours = 48;
@@ -603,20 +603,22 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         var hoursAgo = ($(children[2]).children("span").text());
         var lastIp = ($(children[3]).children("a").text());
         var accountAge = ($(children[4]).children("span").text());
+	var banCount = $(data).find("#banCount").val();
         if (extraInfo) {
             accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge);
         }
+	   
+	accountLink.append(" | Bans: " + banCount);
         var hours = hoursAgo.split(" ")[0];
         var hoursAsFloat = parseFloat(hours);
         var hoursAge = accountAge.split(" ")[0];
         var hoursAgeAsFloat = parseFloat(hoursAge);
         var muteText = $(children[9]).find("span").text();
 
-        accountLink.attr('data-bancount', $(data).find("#banCount").val());
+        accountLink.attr('data-bancount', banCount);
 
         // Orange/Cyan added for new accounts by Ballzilla
         if (data.indexOf("unbanButton") > -1) {
-
             accountLink.append(" (This user is currently banned)");
             if(hoursAgeAsFloat <= newAcntHours) {
                 accountLink.css({
