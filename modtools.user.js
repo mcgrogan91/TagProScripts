@@ -2,7 +2,8 @@
 // @name         Mod Tools Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
-// @version      1.5.4
+
+// @version      1.5.8
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -26,6 +27,11 @@ var banAction = function(id, type, count, reason, callback) {
         reason: reason,
         banCount: count
     }, callback);
+}
+
+var muteAction = function(id, callback) {
+    var muteURL = document.location.origin + '/moderate/users/' + id + '/mute';
+    $.post(muteURL, callback);
 }
 
 var evasionSection = function() {
@@ -126,6 +132,7 @@ var evasionSection = function() {
             var evasionAccount = $("<div class='pad'/>");
             evasionAccount.append("<h2>Evasion Profile</h2>");
             var evasionBanButton = $("<button class='small'>Ban Account</button>");
+            var evasionMuteButton = $("<button class='small'>Mute Account</button>");
             var banEvasionReason = 7; //This is hacky as shit.  I should probably search the ban reason list for the id but i'm drunk coding.
             var evasionBan = function() {
                 if (accountBanList.length != 0) {
@@ -136,9 +143,18 @@ var evasionSection = function() {
                     location.reload();
                 }
             };
+            var evasionMute = function() {
+                if (usersOnlyList.length != 0) {
+                    var profile = usersOnlyList.pop();
+                    muteAction(profile.id, evasionMute);
+                } else {
+                    location.reload();
+                }
+            };
             var accountBanList = [];
 
             evasionAccount.append(evasionBanButton);
+            evasionAccount.append(evasionMuteButton);
             if (banProfile.profiles.length > 0) {
                 var accounts = $("<p class='evasion_accounts' class=''></p>");
                 accounts.append("<h2 class='indent'>Accounts</h2>");
@@ -185,6 +201,19 @@ var evasionSection = function() {
             }
             evasionBanButton.on('click', function() {
                 if (dinkProtect(true)) {
+                    evasionBan(accountBanList);
+                }
+            });
+            evasionMuteButton.on('click', function() {
+            	usersOnlyList = accountBanList.filter(function(e) {
+				    return e.type === 'users'; //only users can be muted
+				});
+				accountBanList = accountBanList.filter(function(e) {
+					return e.type === 'ips'; //only ips should be banned
+				});
+
+                if (dinkProtect(true)) {
+                    evasionMute(usersOnlyList);
                     evasionBan(accountBanList);
                 }
             });
@@ -270,10 +299,9 @@ var optionsLink = $('<a href="#" id="options">Options</a>');
 var optionsPage = $("<div/>");
 $("a[href='/moderate/modactions']").after(optionsLink);
 optionsPage.append("SETTINGS!<br/><br/>");
-optionsPage.append("<input type='checkbox' id='longTime'>Full time on Chat Page</input> (Adds seconds to times)<br/><br/>");
-optionsPage.append("<input type='checkbox' id='dinkProtect'>Enable dink protections</input> (Requires verification to ban/unban)<br/><br/>");
-
-optionsPage.append("<input type='checkbox' id='communityAlert'>Community Alerts</input> (Triggers notifications on Community Ban Appeals)<br/><br/>");
+optionsPage.append("<div><input type='checkbox' id='longTime' /><label for='longTime'>Full time on Chat Page (Adds seconds to times)</label></div><br/>");
+optionsPage.append("<div><input type='checkbox' id='dinkProtect' /><label for='dinkProtect'>Enable dink protections (Requires verification to ban/unban)</label></div><br/>");
+optionsPage.append("<div><input type='checkbox' id='communityAlert' /><label for='communityAlert'>Community Alerts (Triggers notifications on Community Ban Appeals)</label></div><br/>");
 var countSelect = "<select id='commonCount'>";
 for(var amount = 0; amount < 10; amount++) {
     if (amount+1 == GM_getValue("common_count", 5)) {
@@ -561,6 +589,10 @@ function dinkProtect(override = false) {
     }
 }
 
+function isMuteActive(text) {
+    return text.indexOf("in") >= 0;
+}
+
 var newAcntHours = 48;
 function colorAccountInfo(accountLink, extraInfo = true) {
     $.get(accountLink[0].href, function (data) {
@@ -571,19 +603,22 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         var hoursAgo = ($(children[2]).children("span").text());
         var lastIp = ($(children[3]).children("a").text());
         var accountAge = ($(children[4]).children("span").text());
+	var banCount = $(data).find("#banCount").val();
         if (extraInfo) {
             accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge);
         }
+	   
+	accountLink.append(" | Bans: " + banCount);
         var hours = hoursAgo.split(" ")[0];
         var hoursAsFloat = parseFloat(hours);
         var hoursAge = accountAge.split(" ")[0];
         var hoursAgeAsFloat = parseFloat(hoursAge);
+        var muteText = $(children[9]).find("span").text();
 
-        accountLink.attr('data-bancount', $(data).find("#banCount").val());
+        accountLink.attr('data-bancount', banCount);
 
         // Orange/Cyan added for new accounts by Ballzilla
         if (data.indexOf("unbanButton") > -1) {
-
             accountLink.append(" (This user is currently banned)");
             if(hoursAgeAsFloat <= newAcntHours) {
                 accountLink.css({
@@ -594,7 +629,7 @@ function colorAccountInfo(accountLink, extraInfo = true) {
                     'color': 'red'
                 })
             }
-        } else if (data.indexOf('unmuteButton') > -1) {
+        } else if (isMuteActive(muteText)) {
             accountLink.css({
                 'color': 'yellow'
             })
@@ -617,7 +652,7 @@ if (window.location.pathname.indexOf("fingerprints") > -1) {
     });
 }
 if (window.location.pathname.indexOf("reports") > -1) {
-    $("#filters").append("<input type='checkbox' id='toggleSys'>Hide system reports</input>");
+    $("#filters").append("<div style='margin: 0'><input type='checkbox' id='toggleSys' /><label for='toggleSys'>Hide system reports</label></div>");
     if(GM_getValue("hideSystem")===true){
         $("#toggleSys").prop('checked', true);
     }
