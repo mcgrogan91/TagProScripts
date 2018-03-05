@@ -3,10 +3,11 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.5.8
+// @version      1.5.9
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
+// @contributor  Carbon
 // @include      http://tagpro-*.koalabeast.com/moderate/*
 // @include      http://tangent.jukejuice.com/moderate/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/crosstab/0.2.12/crosstab.min.js
@@ -302,6 +303,7 @@ optionsPage.append("SETTINGS!<br/><br/>");
 optionsPage.append("<div><input type='checkbox' id='longTime' /><label for='longTime'>Full time on Chat Page (Adds seconds to times)</label></div><br/>");
 optionsPage.append("<div><input type='checkbox' id='dinkProtect' /><label for='dinkProtect'>Enable dink protections (Requires verification to ban/unban)</label></div><br/>");
 optionsPage.append("<div><input type='checkbox' id='communityAlert' /><label for='communityAlert'>Community Alerts (Triggers notifications on Community Ban Appeals)</label></div><br/>");
+optionsPage.append("<div><input type='checkbox' id='reportCounter' /><label for='reportCounter'>Disable active reports counter in the Recent Reports header</label></div><br/>");
 var countSelect = "<select id='commonCount'>";
 for(var amount = 0; amount < 10; amount++) {
     if (amount+1 == GM_getValue("common_count", 5)) {
@@ -335,6 +337,7 @@ optionsLink.on('click',function() {
     prepToggle("#longTime", "longTime");
     prepToggle("#dinkProtect", "dink_protect");
     prepToggle("#communityAlert", "alert_community");
+    prepToggle("#reportCounter", "report_counter");
     $("#commonCount").on('change', function() {
         GM_setValue("common_count", $(this).val());
     });
@@ -840,6 +843,7 @@ if(window.location.pathname.indexOf('chat') > -1) {
 }
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
+    setActiveCountOnRecentReports(!GM_getValue('report_counter')); //note the !, enabling the checkbox disables functionality
     evasionSection();
     var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
     var section = window.location.pathname.indexOf('users') > -1 ? 'users' : 'ips';
@@ -1087,7 +1091,57 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     }
 }
 
+function setActiveCountOnRecentReports(optionEnabled) {
+    var reportsJSONObj;
+    reports = document.querySelectorAll('[title="Remove report"]');
+    reportCount = reports.length;
+    if(optionEnabled && reportCount>0) {
+        getReportReasons(loopThroughReports);
+    } 
+}
 
+function getReportReasons(callback) {
+    $.getJSON(document.location.origin+"/misc/kickReasons.json", function (data) {
+        reportsJSONObj = data;
+        callback();
+    });
+}
+
+function loopThroughReports() {
+    activeReportCounter = 0;
+    for (var i=0; i<reportCount; i++) {
+        reportReasonRaw = reports[i].parentNode.children[0].innerText;
+        reportReason = reportReasonRaw.substr(0, reportReasonRaw.indexOf(" by ")); //remove reporter name
+        activeReportCounter += doesReportIncrementCount(reportReason);
+    }
+    updateRecentReportsHeader(activeReportCounter);
+}
+
+function doesReportIncrementCount(reason) {
+    for (var i=1; i<=Object.keys(reportsJSONObj).length; i++) {
+        line = reportsJSONObj[i];
+        if(reason == line.text && line.incrementReportCount) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+function updateRecentReportsHeader(activeReportCounter) {
+    h2Elements = document.getElementsByTagName("h2");
+    for(var i=0; i<h2Elements.length; i++) { //I don't know how to find the right one without looping through
+        if(h2Elements[i].innerText.indexOf("Recent Reports (") >= 0) {
+            h2Elements[i].innerText = "Recent Reports (24 hours) - " + activeReportCounter + " active";
+            tooltipText = "Reports that do not count towards the active total:";
+            for(var j=1; j<Object.keys(reportsJSONObj).length; j++) {
+                if(!reportsJSONObj[j].incrementReportCount) {
+                    tooltipText += "\n- " + reportsJSONObj[j].text;
+                }
+            }
+            h2Elements[i].title = tooltipText;
+        }
+    }
+}
 
 // inject custom style for highlighting of ips
 $('head').append('<style> .highlight { text-decoration: underline !important; color: red !important; } </style>');
