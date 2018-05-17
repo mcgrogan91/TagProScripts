@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.5.9
+// @version      1.5.10
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -99,7 +99,7 @@ var evasionSection = function() {
     }
 
     $.get(evasionAPI + "find_evader/" + pageId, {}, function(response) {
-        $('head').append('<style> .evasionSection { float:right; width:50%; border-left: 1px solid #fff; padding-left:20px;} .pad {padding: 10px;} .indent {padding-left:10px;}</style>');
+        $('head').append('<style> .evasionSection { float:right; width:60%; border-left: 1px solid #fff; padding-left:20px;} .pad {padding: 10px;} .indent {padding-left:10px;}</style>');
         var evasionSection = $("<div class='evasionSection'/>"),
             addAccount,
             addIP;
@@ -606,12 +606,15 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         var hoursAgo = ($(children[2]).children("span").text());
         var lastIp = ($(children[3]).children("a").text());
         var accountAge = ($(children[4]).children("span").text());
-	var banCount = $(data).find("#banCount").val();
+        var muteCount = ($(children[9]).children("span").text()); // this gives us some text with the number in parentheses
+        muteCount = muteCount.match(/\(([^)]+)\)/)[1]; // Pull that number out
+        var banCount = $(data).find("#banCount").val();
         if (extraInfo) {
             accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge);
         }
 	   
-	accountLink.append(" | Bans: " + banCount);
+        accountLink.append(" | Bans: " + banCount + " | Mutes: " + muteCount);
+
         var hours = hoursAgo.split(" ")[0];
         var hoursAsFloat = parseFloat(hours);
         var hoursAge = accountAge.split(" ")[0];
