@@ -147,10 +147,16 @@ var evasionSection = function() {
         response.forEach(function(banProfile, index, array) {
             var evasionAccount = $("<div class='pad'/>");
             evasionAccount.append("<h2 id='evasionProfileHeader'>Evasion Profile</h2>");
-            var evasionBanButton = $("<button class='small'>Ban</button>");
-            var evasionUnbanButton = $("<button class='small'>Unban</button>");
-            var evasionMuteButton = $("<button class='small'>Mute</button>");
-            var evasionUnmuteButton = $("<button class='small'>Unmute</button>");
+            var evasionButtonToolTips = {
+                ban:    "Accounts and IPs linked to the evasion profile have their ban count increased by 1.\nThe ban reason is \"ban evasion\".",
+                unban:  "Accounts and IPs linked to the evasion profile have their ban count decreased by 1.",
+                mute:   "Accounts linked to the evasion profile have their mute count increased by 1.\nIPs linked to the evasion profile have their ban count increased by 1.",
+                unmute: "Accounts linked to the evasion profile have their mute count decreased by 1.\nIPs linked to the evasion profile have their ban count decreased by 1."
+            };
+            var evasionBanButton = $("<button class='small' title='"+evasionButtonToolTips['ban']+"'>Ban</button>");
+            var evasionUnbanButton = $("<button class='small' title='"+evasionButtonToolTips['unban']+"'>Unban</button>");
+            var evasionMuteButton = $("<button class='small' title='"+evasionButtonToolTips['mute']+"'>Mute</button>");
+            var evasionUnmuteButton = $("<button class='small' title='"+evasionButtonToolTips['unmute']+"'>Unmute</button>");
             var banEvasionReason = 7; //This is hacky as shit.  I should probably search the ban reason list for the id but i'm drunk coding.
             var accountBanListTotal; //Set at the end of the forEach, accountBanList needs to be populated
             var userMuteListTotal; //Set at the end of the forEach, usersOnlyList needs to be populated
