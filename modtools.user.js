@@ -44,6 +44,12 @@ var unmuteAction = function(id, type, callback) {
     $.post(getActionURL(id, type, 'unmute'), callback);
 }
 
+var setEvasionProfileHeader = function(total, remaining, action) {
+    var percentRemaining = (total-remaining)/total*100;
+    document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - "+action+" - "+percentRemaining.toFixed(1)+"% complete";
+    document.title = "Action In Progress";
+}
+
 var evasionSection = function() {
     var isProfile = window.location.href.indexOf("users/") > 0;
     var isIP = window.location.href.indexOf("ips/") > 0;
@@ -140,15 +146,18 @@ var evasionSection = function() {
         var evasionAccounts = $("<div/>");
         response.forEach(function(banProfile, index, array) {
             var evasionAccount = $("<div class='pad'/>");
-            evasionAccount.append("<h2>Evasion Profile</h2>");
+            evasionAccount.append("<h2 id='evasionProfileHeader'>Evasion Profile</h2>");
             var evasionBanButton = $("<button class='small'>Ban</button>");
             var evasionUnbanButton = $("<button class='small'>Unban</button>");
             var evasionMuteButton = $("<button class='small'>Mute</button>");
             var evasionUnmuteButton = $("<button class='small'>Unmute</button>");
             var banEvasionReason = 7; //This is hacky as shit.  I should probably search the ban reason list for the id but i'm drunk coding.
+            var accountBanListTotal; //Set at the end of the forEach, accountBanList needs to be populated
+            var userMuteListTotal; //Set at the end of the forEach, usersOnlyList needs to be populated
             var addAction = false; //If you can get the callback w/parameter working, please change this so addAction isn't used.
             var evasionBanAction = function() {
                 if (accountBanList.length != 0) {
+                    setEvasionProfileHeader(accountBanListTotal, accountBanList.length, (addAction ? "Ban" : "Unban"));
                     var profile = accountBanList.pop();
                     if(addAction) {
                         var banCount = parseInt(profile.el.attr('data-bancount'));
@@ -157,15 +166,18 @@ var evasionSection = function() {
                         unbanAction(profile.id, profile.type, evasionBanAction);
                     }
                 } else {
+                    document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - Complete, refreshing";
                     location.reload();
                 }
             };
             var evasionMuteAction = function() {
                 if (usersOnlyList.length != 0) {
+                    setEvasionProfileHeader(userMuteListTotal, usersOnlyList.length, (addAction ? "Mute" : "Unmute"));
                     var profile = usersOnlyList.pop();
                     if(addAction) {
                         muteAction(profile.id, "users", evasionMuteAction);
                     } else {
+                        document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - Complete, refreshing";
                         unmuteAction(profile.id, "users", evasionMuteAction);
                     }
                 } else {
@@ -250,6 +262,9 @@ var evasionSection = function() {
                     return e.type === 'ips'; //only ips should be banned
                 });
 
+                userMuteListTotal = usersOnlyList.length;
+                accountBanListTotal = accountBanList.length;
+
                 if (dinkProtect(true)) {
                     addAction = addditive;
                     evasionMuteAction();
@@ -257,6 +272,7 @@ var evasionSection = function() {
                 }
             };
 
+            accountBanListTotal = accountBanList.length;
             evasionAccounts.append(evasionAccount);
         });
         evasionSection.append(evasionAccounts);
