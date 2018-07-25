@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.5.11
+// @version      1.6.0
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -21,18 +21,33 @@ var bizAPI = "http://104.236.225.6/api/";
 var commentAPI = bizAPI + "comments/";
 var evasionAPI = bizAPI + "evasion/";
 
+var getActionURL = function(id, type, actionType) {
+    return document.location.origin + '/moderate/' + type + '/' + id + '/' + actionType;
+}
 
 var banAction = function(id, type, count, reason, callback) {
-    var banURL = document.location.origin + '/moderate/' + type + '/' + id + '/ban';
-    $.post(banURL, {
+    $.post(getActionURL(id, type, 'ban'), {
         reason: reason,
         banCount: count
     }, callback);
 }
 
-var muteAction = function(id, callback) {
-    var muteURL = document.location.origin + '/moderate/users/' + id + '/mute';
-    $.post(muteURL, callback);
+var unbanAction = function(id, type, callback) {
+    $.post(getActionURL(id, type, 'unban'), callback);
+}
+
+var muteAction = function(id, type, callback) {
+    $.post(getActionURL(id, type, 'mute'), callback);
+}
+
+var unmuteAction = function(id, type, callback) {
+    $.post(getActionURL(id, type, 'unmute'), callback);
+}
+
+var setEvasionProfileHeader = function(total, remaining, action) {
+    var percentRemaining = (total-remaining)/total*100;
+    document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - "+action+" - "+percentRemaining.toFixed(1)+"% complete";
+    document.title = "Action In Progress";
 }
 
 var evasionSection = function() {
@@ -131,23 +146,46 @@ var evasionSection = function() {
         var evasionAccounts = $("<div/>");
         response.forEach(function(banProfile, index, array) {
             var evasionAccount = $("<div class='pad'/>");
-            evasionAccount.append("<h2>Evasion Profile</h2>");
-            var evasionBanButton = $("<button class='small'>Ban Account</button>");
-            var evasionMuteButton = $("<button class='small'>Mute Account</button>");
+            evasionAccount.append("<h2 id='evasionProfileHeader'>Evasion Profile</h2>");
+            var evasionButtonToolTips = {
+                ban:    "Accounts and IPs linked to the evasion profile have their ban count increased by 1.\nThe ban reason is \"ban evasion\".",
+                unban:  "Accounts and IPs linked to the evasion profile have their ban count decreased by 1.",
+                mute:   "Accounts linked to the evasion profile have their mute count increased by 1.\nIPs linked to the evasion profile have their ban count increased by 1.",
+                unmute: "Accounts linked to the evasion profile have their mute count decreased by 1.\nIPs linked to the evasion profile have their ban count decreased by 1."
+            };
+            var evasionBanButton = $("<button class='small' title='"+evasionButtonToolTips['ban']+"'>Ban</button>");
+            var evasionUnbanButton = $("<button class='small' title='"+evasionButtonToolTips['unban']+"'>Unban</button>");
+            var evasionMuteButton = $("<button class='small' title='"+evasionButtonToolTips['mute']+"'>Mute</button>");
+            var evasionUnmuteButton = $("<button class='small' title='"+evasionButtonToolTips['unmute']+"'>Unmute</button>");
             var banEvasionReason = 7; //This is hacky as shit.  I should probably search the ban reason list for the id but i'm drunk coding.
-            var evasionBan = function() {
+            var accountBanListTotal; //Set at the end of the forEach, accountBanList needs to be populated
+            var userMuteListTotal; //Set at the end of the forEach, usersOnlyList needs to be populated
+            var addAction = false; //If you can get the callback w/parameter working, please change this so addAction isn't used.
+            var evasionBanAction = function() {
                 if (accountBanList.length != 0) {
+                    setEvasionProfileHeader(accountBanListTotal, accountBanList.length, (addAction ? "Ban" : "Unban"));
                     var profile = accountBanList.pop();
-                    var banCount = parseInt(profile.el.attr('data-bancount'));
-                    banAction(profile.id, profile.type, banCount + 1, banEvasionReason, evasionBan);
+                    if(addAction) {
+                        var banCount = parseInt(profile.el.attr('data-bancount'));
+                        banAction(profile.id, profile.type, banCount + 1, banEvasionReason, evasionBanAction);
+                    } else {
+                        unbanAction(profile.id, profile.type, evasionBanAction);
+                    }
                 } else {
+                    document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - Complete, refreshing";
                     location.reload();
                 }
             };
-            var evasionMute = function() {
+            var evasionMuteAction = function() {
                 if (usersOnlyList.length != 0) {
+                    setEvasionProfileHeader(userMuteListTotal, usersOnlyList.length, (addAction ? "Mute" : "Unmute"));
                     var profile = usersOnlyList.pop();
-                    muteAction(profile.id, evasionMute);
+                    if(addAction) {
+                        muteAction(profile.id, "users", evasionMuteAction);
+                    } else {
+                        document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - Complete, refreshing";
+                        unmuteAction(profile.id, "users", evasionMuteAction);
+                    }
                 } else {
                     location.reload();
                 }
@@ -155,7 +193,9 @@ var evasionSection = function() {
             var accountBanList = [];
 
             evasionAccount.append(evasionBanButton);
+            evasionAccount.append(evasionUnbanButton);
             evasionAccount.append(evasionMuteButton);
+            evasionAccount.append(evasionUnmuteButton);
             if (banProfile.profiles.length > 0) {
                 var accounts = $("<p class='evasion_accounts' class=''></p>");
                 accounts.append("<h2 class='indent'>Accounts</h2>");
@@ -202,23 +242,43 @@ var evasionSection = function() {
             }
             evasionBanButton.on('click', function() {
                 if (dinkProtect(true)) {
-                    evasionBan(accountBanList);
+                    addAction = true;
+                    evasionBanAction();
                 }
             });
+            evasionUnbanButton.on('click', function() {
+                if (dinkProtect(true)) {
+                    addAction = false;
+                    evasionBanAction();
+                }
+            });
+
             evasionMuteButton.on('click', function() {
-            	usersOnlyList = accountBanList.filter(function(e) {
-				    return e.type === 'users'; //only users can be muted
-				});
-				accountBanList = accountBanList.filter(function(e) {
-					return e.type === 'ips'; //only ips should be banned
-				});
+                evasionProfileButton(true);
+            });
+            evasionUnmuteButton.on('click', function() {
+                evasionProfileButton(false);
+            });
+
+            var evasionProfileButton = function(addditive) {
+                usersOnlyList = accountBanList.filter(function(e) {
+                    return e.type === 'users'; //only users can be muted
+                });
+                accountBanList = accountBanList.filter(function(e) {
+                    return e.type === 'ips'; //only ips should be banned
+                });
+
+                userMuteListTotal = usersOnlyList.length;
+                accountBanListTotal = accountBanList.length;
 
                 if (dinkProtect(true)) {
-                    evasionMute(usersOnlyList);
-                    evasionBan(accountBanList);
+                    addAction = addditive;
+                    evasionMuteAction();
+                    evasionBanAction();
                 }
-            });
+            };
 
+            accountBanListTotal = accountBanList.length;
             evasionAccounts.append(evasionAccount);
         });
         evasionSection.append(evasionAccounts);
