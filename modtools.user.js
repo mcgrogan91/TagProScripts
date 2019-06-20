@@ -51,6 +51,24 @@ var setEvasionProfileHeader = function(total, remaining, action) {
     document.title = "Action In Progress";
 }
 
+var getIPInfo = function(ip) {
+    GM_xmlhttpRequest({
+        method: "GET",
+        headers: {
+            "Accept": "application/json",
+            "X-key": "NTQ2ODo1cFZHbXNwRlg2b3dseXFxVnBmbWhsSTgzZGZrUUxvYQ=="
+        },
+        url: "http://v2.api.iphub.info/ip/"+ip,
+        onload: function(response) {
+            var json = JSON.parse(response.responseText);
+            console.log(json);
+            debugger;
+        }
+    });
+}
+// This is the IP of the Starbucks I was at
+//getIPInfo("50.243.54.51");
+
 var evasionSection = function() {
     var isProfile = window.location.href.indexOf("users/") > 0;
     var isIP = window.location.href.indexOf("ips/") > 0;
@@ -672,7 +690,7 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         if (extraInfo) {
             accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge);
         }
-	   
+
         accountLink.append(" | Bans: " + banCount + " | Mutes: " + muteCount);
         if (muteCount.length) {
             muteCount = muteCount.match(/\(([^)]+)\)/)[1]; // Pull that number out
@@ -1163,7 +1181,7 @@ function setActiveCountOnRecentReports(optionEnabled) {
     reportCount = reports.length;
     if(optionEnabled && reportCount>0) {
         getReportReasons(loopThroughReports);
-    } 
+    }
 }
 
 function getReportReasons(callback) {
