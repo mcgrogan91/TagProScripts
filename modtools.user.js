@@ -1290,3 +1290,89 @@ $.get(evasionAPI + 'evaders', function(response) {
         });
     }, 1000);
 });
+
+//  Loads the chat from a game and plops it into the html
+var loadChatFromGame = function(gameID) {
+    $.getJSON(document.location.origin + '/moderate/chat?hours=36&ip=&userId=&gameId=' + gameID, function (data) {
+        //  Process the chat into the HTML
+        console.log(data);
+    }); 
+}
+
+$('#addChatFromGames').click(function(e) {
+    loadAllChatFromGame($('#gamesToGet').val());
+});
+
+var sortUserLastGame = function(ascOrDesc) {
+    var userRows = $('tr');
+    dashUsers = [];
+
+    $('#reportRows').html('');
+    recursiveLastPlayedSort(userRows, ascOrDesc);
+
+    if (ascOrDesc === 'desc') {
+        return 'asc';
+    } else {
+        return 'desc';
+    }
+}
+
+var recursiveLastPlayedSort = function(userRows, ascOrDesc) {
+    var currentLow = null;
+    var currentLowHoursPlayed = null;
+    var currentLowIndex = null;
+
+    //  Only run it if we have rows to look at
+    if (userRows.length > 0) {
+        //  Find the current lowest number of hours played
+        for (var i = 0; i < userRows.length; i++) {
+            //  If it's a dash user we'll put them at the end
+            if (userRows.eq(i).find('th:nth-child(4)').text() !== '-') {
+                var hoursPlayed = userRows.eq(i).find('th:nth-child(4)').text().match(/\d+/g);
+
+                if (hoursPlayed !== null && (parseInt(hoursPlayed, 10) < currentLowHoursPlayed || currentLow === null)) {
+                    currentLowHoursPlayed = parseInt(hoursPlayed, 10);
+                    currentLow = userRows.eq(i);
+                    currentLowIndex = i;
+                }
+            } else {
+                dashUsers.push(userRows.eq(i));
+            }
+        }
+
+        //  Append the lowest row and splice the element out of the array
+        if (currentLow !== undefined) {
+            if (ascOrDesc === 'desc') {
+                $('#reportRows').append(currentLow);
+            } else {
+                $('#reportRows').prepend(currentLow);
+            }
+            
+            userRows.splice(currentLowIndex, 1);
+        }
+
+        recursiveLastPlayedSort(userRows, ascOrDesc);
+    } else {
+        //  Put the dash users we found at the end
+        dashUsers.forEach(function(row) {
+            if (ascOrDesc === 'desc') {
+                $('#reportRows').append(row);
+            } else {
+                $('#reportRows').prepend(row);
+            }
+        });
+
+        return;
+    }
+}
+
+if (window.location.pathname.indexOf("users") > -1) {
+    var ascOrDesc = 'desc';
+    var dashUsers = [];
+
+    $('th').click(function(e) {
+        if ($(this).text() === 'Last Game') {
+            ascOrDesc = sortUserLastGame(ascOrDesc);
+        }
+    });
+}
