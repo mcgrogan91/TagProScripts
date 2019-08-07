@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.6.4
+// @version      1.7.0
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -50,24 +50,6 @@ var setEvasionProfileHeader = function(total, remaining, action) {
     document.getElementById("evasionProfileHeader").innerText = "Evasion Profile - "+action+" - "+percentRemaining.toFixed(1)+"% complete";
     document.title = "Action In Progress";
 }
-
-var getIPInfo = function(ip) {
-    GM_xmlhttpRequest({
-        method: "GET",
-        headers: {
-            "Accept": "application/json",
-            "X-key": "NTQ2ODo1cFZHbXNwRlg2b3dseXFxVnBmbWhsSTgzZGZrUUxvYQ=="
-        },
-        url: "http://v2.api.iphub.info/ip/"+ip,
-        onload: function(response) {
-            var json = JSON.parse(response.responseText);
-            console.log(json);
-            debugger;
-        }
-    });
-}
-// This is the IP of the Starbucks I was at
-//getIPInfo("50.243.54.51");
 
 var evasionSection = function() {
     var isProfile = window.location.href.indexOf("users/") > 0;
@@ -1136,6 +1118,46 @@ if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.in
     });
     prevChild.parent().append(submitBan);
 
+    function getIPInfo(ip) {
+        GM_xmlhttpRequest({
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "X-key": "NTQ2ODo1cFZHbXNwRlg2b3dseXFxVnBmbWhsSTgzZGZrUUxvYQ=="
+            },
+            url: "http://v2.api.iphub.info/ip/"+ip,
+            onload: function(response) {
+                var json = JSON.parse(response.responseText),
+                    type, color;
+                if (json.block == 0) {
+                    type = 'Residential or business';
+                    color = '#04bd04'; // green
+                } else if (json.block == 1) {
+                    type = 'Non-residential IP';
+                    color = '#e74c3c'; // red
+                } else if (json.block == 2) {
+                    type = 'Non-residential & residential IP';
+                    color = '#f39c12'; // orange
+                }
+
+                var ipInfo = $("<div style='padding-left:20px'></div>");
+                ipInfo.append("<div style='max-width:300px'><span>Country</span><span style='float:right'>"+json.countryName+"</span></div>");
+                ipInfo.append("<div style='max-width:300px'><span>ISP</span><span style='float:right'>"+json.isp+"</span></div>");
+                ipInfo.append("<div style='max-width:300px'><span>Type</span><span style='float:right; color:"+color+"'>"+type+"</span></div>");
+                $('#ipCheck').parent().append(ipInfo);
+            }
+        });
+    }
+
+    var ipCheck = $("<button id='ipCheck' class='tiny'>VPN Check</button>");
+    ipCheck.on('click', function(e) {
+        e.preventDefault();
+        var el = $(this);
+        el.hide();
+        getIPInfo(el.prev().text());
+    });
+    $('label:contains("'+ (section == 'users' ? 'Last IP' : 'IP Address') +'")').parent().append(ipCheck);
+
     if(profId !== 'users') {
         $("<h2 id='comment_title'>Comments</h2>").appendTo("#content");
 
@@ -1290,18 +1312,6 @@ $.get(evasionAPI + 'evaders', function(response) {
             }
         });
     }, 1000);
-});
-
-//  Loads the chat from a game and plops it into the html
-var loadChatFromGame = function(gameID) {
-    $.getJSON(document.location.origin + '/moderate/chat?hours=36&ip=&userId=&gameId=' + gameID, function (data) {
-        //  Process the chat into the HTML
-        console.log(data);
-    }); 
-}
-
-$('#addChatFromGames').click(function(e) {
-    loadAllChatFromGame($('#gamesToGet').val());
 });
 
 var sortUserLastGame = function(ascOrDesc) {
