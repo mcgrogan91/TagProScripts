@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.6.3
+// @version      1.6.4
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -927,6 +927,7 @@ if(window.location.pathname.indexOf('chat') > -1) {
 }
 
 if(window.location.pathname.indexOf('users') > -1 || window.location.pathname.indexOf('ips') > -1) {
+    $("#shadowmuteButton").hide();
     setActiveCountOnRecentReports(!GM_getValue('report_counter')); //note the !, enabling the checkbox disables functionality
     evasionSection();
     var profId = window.location.pathname.substr(window.location.pathname.lastIndexOf('/') + 1);
