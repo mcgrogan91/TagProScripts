@@ -2,7 +2,7 @@
 // @name         Support Site Helper
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/supportsite.user.js
-// @version      2.0.0
+// @version      2.0.1
 // @description  Canned responses for the most common scenarios, displays ban information from the mod tools based on profileid, integrated wysiwyg markdown editor for easy formating of responses (includes a autosave feature of draft messages), fixes the text/url of those who enter full url's as there profileid rather then just the id itself while making those who enter there name as profile id display as plain text and not a clickable link...
 // @author       Bizkut
 // @contributor  OmicroN
@@ -35,7 +35,7 @@ var buttons = {
     },
     'afk_message': {
         'button': 'AFK Too Much',
-        'text': "Hi ##appealName##,\n\nYou were banned for receiving 8 reports within 24 hours. Most of these reports are for not moving for 30 seconds, and getting kicked by the AFK timer. Please try to stay active in-game, and click the exit button if you need to leave. Also, try not to switch tabs inbetween games, because you might end up in a game and not realize it!\n\n*Please let us know if you have any further questions or concerns.*\n\n\Regards, "+modName
+        'text': "Hi ##appealName##,\n\nYou were banned for receiving 8 reports within 24 hours. Most of these reports are for not moving for 30 seconds, and getting kicked by the AFK timer. Please try to stay active in-game, and click the exit button in the upper left corner if you need to leave. Also, try not to switch tabs inbetween games, because you might end up in a game and not realize it!\n\n*Please let us know if you have any further questions or concerns.*\n\n\Regards, "+modName
     },
     'chat_message': {
         'button': 'Offensive Chat',
