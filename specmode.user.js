@@ -4,6 +4,7 @@
 // @updateURL     https://github.com/mcgrogan91/TagProScripts/raw/master/specmode.user.js
 // @description   Never accidentally join a game again
 // @include       http://tangent.jukejuice.com*
+// @include       https://tagpro.koalabeast.com*
 // @include       http://tagpro-*.koalabeast.com*
 // @author        turtlemansam and help from bizkut's script
 // @contributor   bizkut
