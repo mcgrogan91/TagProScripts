@@ -9,7 +9,7 @@
 // @author        turtlemansam and help from bizkut's script
 // @contributor   bizkut
 // @contributor   OmicroN
-// @version       2.3.2
+// @version       2.3.3
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
