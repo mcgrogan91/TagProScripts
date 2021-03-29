@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.7.0
+// @version      1.7.1
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -591,6 +591,7 @@ function bindReason(e) {
     return t ? t.text : ""
 }
 function bindPlayerName(e) {
+    debugger;
     return e ? e.reservedName : ""
 }
 
@@ -639,6 +640,24 @@ function bindBool(e) {
 function bindValue(e) {
     return e ? e : ""
 }
+
+/**
+ * On any of the moderation tables where we display a bunch of rows
+ * this function will make it display a row explaining there were no responses
+ */
+function addNoResponseCheck() {
+    if (typeof moderate !== 'undefined') {
+        moderate.oldBind = moderate.smartBind;
+        moderate.smartBind = function($template, data) {
+            var rows = moderate.oldBind($template, data);
+            if (Array.isArray(rows) && rows.length == 0) {
+                rows.push($("<tr><td></td><td></td><td></td><td style='font-size:5em'>No results</td></tr>"))
+            }
+            return rows;
+        }
+    }
+};
+addNoResponseCheck();
 
 function dinkProtect(override = false) {
     if (override === true || GM_getValue("dink_protect") === true) {
@@ -1358,7 +1377,7 @@ var recursiveLastPlayedSort = function(userRows, ascOrDesc) {
             } else {
                 $('#reportRows').prepend(currentLow);
             }
-            
+
             userRows.splice(currentLowIndex, 1);
         }
 
