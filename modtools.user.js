@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.7.1
+// @version      1.7.2
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -591,7 +591,6 @@ function bindReason(e) {
     return t ? t.text : ""
 }
 function bindPlayerName(e) {
-    debugger;
     return e ? e.reservedName : ""
 }
 
