@@ -3,7 +3,7 @@
 // @namespace    http://www.reddit.com/u/bizkut
 // @updateURL    https://github.com/mcgrogan91/TagProScripts/raw/master/modtools.user.js
 
-// @version      1.7.2
+// @version      1.7.3
 // @description  It does a lot.  And then some.  I'm not even joking.  It does too much.
 // @author       Bizkut
 // @contributor  OmicroN
@@ -685,7 +685,7 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         var hoursAgo = ($(children[2]).children("span").text());
         var lastIp = ($(children[3]).children("a").text());
         var accountAge = ($(children[4]).children("span").text());
-        var muteCount = ($(children[9]).children("span").text()); // this gives us some text with the number in parentheses
+        var muteCount = ($(children[8]).children("span").text()); // this gives us some text with the number in parentheses
         var banCount = $(data).find("#banCount").val();
         if (extraInfo) {
             accountLink.append(" - Last Played: " + hoursAgo + " | IP: " + lastIp + " | Age: " + accountAge);
@@ -700,7 +700,7 @@ function colorAccountInfo(accountLink, extraInfo = true) {
         var hoursAsFloat = parseFloat(hours);
         var hoursAge = accountAge.split(" ")[0];
         var hoursAgeAsFloat = parseFloat(hoursAge);
-        var muteText = $(children[9]).find("span").text();
+        var muteText = $(children[8]).find("span").text();
 
         accountLink.attr('data-bancount', banCount);
 
